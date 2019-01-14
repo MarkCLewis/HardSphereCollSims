@@ -97,9 +97,9 @@ class FixedGridCollisionHash {
 				omp_init_lock(&rowLock[i]);
 
 			#pragma omp parallel for schedule(static)
-			for(int i = 0; i<numBodies; ++i)
+			for(int ii = 0; ii<numBodies; ++ii)
 			{
-				ParticleIndex pi = {i};
+				ParticleIndex pi = {ii};
 				BinIndex binx=calcBinX(pop,pi);
 				BinIndex biny=calcBinY(pop,pi);
 				if(binx.i<0) {
@@ -118,7 +118,7 @@ class FixedGridCollisionHash {
 				ybin[pi.i]=biny;
 
 				omp_set_lock(&rowLock[binx.i]);
-				next[i]=first[binx.i][biny.i];
+				next[pi.i]=first[binx.i][biny.i];
 				first[binx.i][biny.i]=pi;
 				omp_unset_lock(&rowLock[binx.i]);
 			}

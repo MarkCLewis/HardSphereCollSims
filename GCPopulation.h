@@ -375,8 +375,6 @@ class GCPopulation {
 			out.output(*this);
 
 #ifdef HIGH_VEL_OUTPUT
-			printf("Writing collision data.\n");
-			fflush(stdout);
 			int s = collPQ.size();
 			fwrite(&s, sizeof(int), 1, collVelFout);
 			while(!collPQ.empty()) {
@@ -384,8 +382,6 @@ class GCPopulation {
 				collPQ.pop();
 			}
 			fflush(collVelFout);
-			printf("Done writing collision data.\n");
-			fflush(stdout);
 #endif
 		}
 
@@ -446,9 +442,8 @@ class GCPopulation {
 				double vy = cart[p2.i].vy-cart[p1.i].vy;
 				double vz = cart[p2.i].vz-cart[p1.i].vz;
 				double vel = sqrt(vx*vx + vy*vy + vz*vz);
+				omp_set_lock(&lock);
 				if(collPQ.size() < HIGH_VEL_OUTPUT || vel > collPQ.top().vel) {
-					printf("Emplace vel of %e.\n", vel);
-					fflush(stdout);
 					collPQ.push(
 						CollVelData {	vel,
 							cart[p1.i].x, cart[p1.i].y, cart[p1.i].z,
@@ -459,9 +454,8 @@ class GCPopulation {
 							radius[p2.i]
 						});
 					if(collPQ.size() > HIGH_VEL_OUTPUT) collPQ.pop();
-					printf("Done with queue.\n");
-					fflush(stdout);
 				}
+				omp_unset_lock(&lock);
 			}
 #endif
 		

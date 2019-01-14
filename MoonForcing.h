@@ -88,13 +88,13 @@ class MoonForcing {
 		template<class Population>
 		void doExternalMoon(Population &pop) {
 			if(pop.getNumBodies()<1) return;
-			double esum=0.0;
+//			double esum=0.0;
 			double px=X-ecc*cos(phi);
 			double pz=inc*cos(zeta);
 			#pragma omp parallel for schedule(static)
 			for(int ii=0; ii<pop.getNumBodies(); ii++) {
 				ParticleIndex pi = {ii};
-				double sumy=0.0;
+//				double sumy=0.0;
 				for(int n=0; n<num; ++n) {
 					double py=(Y+n*2*3.14159/num)+GCCoords::BETA*ecc*sin(phi);
 					double sepx=px-pop.getx(pi);
@@ -112,16 +112,16 @@ class MoonForcing {
 					pop.setvx(pi,pop.getvx(pi)+dx*mag);
 					pop.setvy(pi,pop.getvy(pi)+dy*mag);
 					pop.setvz(pi,pop.getvz(pi)+dz*mag);
-					sumy+=dy*mag;
+//					sumy+=dy*mag;
 				}
 				pop.adjustAfterForce(pi);
-				esum+=pop.gete(pi);
+//				esum+=pop.gete(pi);
 //				if(i==0) printf("sumy=%e\n",sumy);
 			}
 			phi+=pop.getTimeStep();
 			zeta+=pop.getTimeStep();
 			Y-=2.0*GCCoords::A0*X*pop.getTimeStep();
-			printf("Average e is %e\n",esum/pop.getNumBodies());
+//			printf("Average e is %e\n",esum/pop.getNumBodies());
 		}
 
 		bool doWrapAround(double miny,double maxy) {
@@ -156,12 +156,12 @@ class ModulatedExternalMoonForcing {
 		void applyForce(Population &pop) {
 			if(pop.getNumBodies()<1) return;
 			if(gc.Y<-L || gc.Y>L) return;
-			double esum=0.0;
+//			double esum=0.0;
 			double moonMag=0.5*(1+cos(gc.Y*3.14159/L));
 			#pragma omp parallel for schedule(static)
 			for(int ii=0; ii<pop.getNumBodies(); ii++) {
 				ParticleIndex pi = {ii};
-				double sumy=0.0;
+//				double sumy=0.0;
 				for(int n=-2; n<3; ++n) {
 					GCType mgc(gc);
 					mgc.advance(n*pop.getTimeStep());
@@ -184,16 +184,16 @@ class ModulatedExternalMoonForcing {
 					pop.setvx(pi,pop.getvx(pi)+dx*mag);
 					pop.setvy(pi,pop.getvy(pi)+dy*mag);
 					pop.setvz(pi,pop.getvz(pi)+dz*mag);
-					sumy+=dy*mag;
+//					sumy+=dy*mag;
 				}
 				pop.adjustAfterForce(pi);
-				esum+=pop.gete(pi);
+//				esum+=pop.gete(pi);
 //				if(i==0) printf("sumy=%e\n",sumy);
 			}
 			gc.advance(pop.getTimeStep());
 			while(gc.Y<-3.14159) gc.Y+=2*3.14159;
 			while(gc.Y>3.14159) gc.Y-=2*3.14159;
-			printf("Average e is %e\n",esum/pop.getNumBodies());
+//			printf("Average e is %e\n",esum/pop.getNumBodies());
 		}
 
 		bool doWrapAround(double miny,double maxy) {

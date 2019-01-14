@@ -58,15 +58,11 @@ class Fixed2DBinnedOutput {
 				}
 				float miny=pop.gety(ParticleIndex{0});
 				float maxy=pop.gety(ParticleIndex{0});
-				#pragma omp parallel for schedule(static)
-				for(int ii=0; ii<pop.getNumBodies(); ++ii) {
-					ParticleIndex pi = {ii};
+				for(ParticleIndex pi={0}; pi.i<pop.getNumBodies(); ++pi.i) {
 					if(miny>pop.gety(pi)) miny=pop.gety(pi);
 					if(maxy<pop.gety(pi)) maxy=pop.gety(pi);
 				}
-				#pragma omp parallel for schedule(static)
-				for(int ii=0; ii<pop.getNumBodies(); ++ii) {
-					ParticleIndex pi = {ii};
+				for(ParticleIndex pi=0; pi.i<pop.getNumBodies(); ++pi.i) {
 					int binx=(int)((pop.getx(pi)-minx)*binCountX/(maxx-minx));
 					int biny=(int)((pop.gety(pi)-miny)*binCountY/(maxy-miny));
 					if(binCountY<2) biny=0;

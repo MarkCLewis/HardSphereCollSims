@@ -1,6 +1,6 @@
 // This is my version of a spatial KD tree used for collision detection and
-// gravity.  Note that the build happens in the collision detection so when
-// a double force is built the collision detection has to come first.
+// gravity.  Note that if this is used for gravity and collisions in a
+// DoubleForce, the gravity needs to come first.
 
 #include <vector>
 #include <algorithm>
@@ -211,8 +211,8 @@ class GravCollTree {
 			}
 #else // for PFORCE
 			#pragma omp parallel for schedule(dynamic,100)
-			for(int i=0; i<nb; ++i) {
-				ParticleIndex pi = {i};
+			for(int ii=0; ii<nb; ++ii) {
+				ParticleIndex pi = {ii};
 				doForce(0,pop,pi,0,0);
 #ifdef AZIMUTHAL_MIRRORS
 				for(int j=1; j<=AZIMUTHAL_MIRRORS; ++j) {
@@ -270,7 +270,7 @@ class GravCollTree {
 			pool[0].parts[0]={0};
 			pool[0].numParts=0;
 			firstFree=1;
-			int nb=pop.getNumBodies();
+			const int nb=pop.getNumBodies();
 			#pragma omp parallel for
 			for(int ii=0; ii<nb; ++ii) {
 				ParticleIndex pi = {ii};
@@ -424,7 +424,7 @@ class GravCollTree {
 		void buildLockGraph(Population &pop) {
 			particleLockNodes.resize(pop.getNumReal());
 			nodeEdges.resize(pool.size());
-			for(int i=0; i<nodeEdges.size(); ++i) {
+			for(unsigned int i=0; i<nodeEdges.size(); ++i) {
 				nodeEdges[i].resize(0);
 				pool[i].inUse=false;
 			}
