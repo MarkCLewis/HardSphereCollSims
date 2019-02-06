@@ -62,7 +62,7 @@ class Fixed2DBinnedOutput {
 					if(miny>pop.gety(pi)) miny=pop.gety(pi);
 					if(maxy<pop.gety(pi)) maxy=pop.gety(pi);
 				}
-				for(ParticleIndex pi=0; pi.i<pop.getNumBodies(); ++pi.i) {
+				for(ParticleIndex pi={0}; pi.i<pop.getNumBodies(); ++pi.i) {
 					int binx=(int)((pop.getx(pi)-minx)*binCountX/(maxx-minx));
 					int biny=(int)((pop.gety(pi)-miny)*binCountY/(maxy-miny));
 					if(binCountY<2) biny=0;
