@@ -152,11 +152,12 @@ class PeriodicWithPhiShift {
 			#pragma omp parallel for schedule(static)
 			for(int ii=0; ii<nb; ++ii) {
 				ParticleIndex pi = {ii};
-				if(pop.gety(pi)<miny) {
+				while(pop.gety(pi)<miny) {
 					pop.setY(pi,pop.getY(pi)+(maxy-miny));
 					pop.setPhi(pi,pop.getPhi(pi)+GCType::phidot(pop.getX(pi))*(maxy-miny)/GCType::Ydot(pop.getX(pi)));
 					pop.setCartAfterForce(pi);
-				} else if(pop.gety(pi)>maxy) {
+				}
+				while(pop.gety(pi)>maxy) {
 					pop.setY(pi,pop.getY(pi)-(maxy-miny));
 					pop.setPhi(pi,pop.getPhi(pi)-GCType::phidot(pop.getX(pi))*(maxy-miny)/GCType::Ydot(pop.getX(pi)));
 					pop.setCartAfterForce(pi);
@@ -202,11 +203,11 @@ class SingleOrbitAzimuthal {
 				#pragma omp parallel for schedule(static)
 				for(int ii=0; ii<nb; ++ii) {
 					ParticleIndex pi = {ii};
-					if(pop.gety(pi)<miny) {
+					while(pop.gety(pi)<miny) {
 						pop.setY(pi,pop.getY(pi)+4.0*3.141592654*GCCoords::A0*pop.getX(pi));
 						pop.setCartAfterForce(pi);
 					}
-					if(pop.gety(pi)>miny+4.0*3.141592654*GCCoords::A0*pop.getx(pi)) {
+					while(pop.gety(pi)>miny+4.0*3.141592654*GCCoords::A0*pop.getx(pi)) {
 						pop.setY(pi,pop.getY(pi)-4.0*3.141592654*GCCoords::A0*pop.getX(pi));
 						pop.setCartAfterForce(pi);
 					}
@@ -246,12 +247,12 @@ class FixedPeriodic {
 			#pragma omp parallel for schedule(static)
 			for(int ii=0; ii<nb; ii++) {
 				ParticleIndex pi = {ii};
-				if(pop.gety(pi)<miny) {
+				while(pop.gety(pi)<miny) {
 					pop.setY(pi,pop.getY(pi)+(maxy-miny));
 					if(zeroOnWrap) pop.sete(pi,0);
 					pop.setCartAfterForce(pi);
 				}
-				if(pop.gety(pi)>maxy) {
+				while(pop.gety(pi)>maxy) {
 					pop.setY(pi,pop.getY(pi)-(maxy-miny));
 					pop.setCartAfterForce(pi);
 				}
