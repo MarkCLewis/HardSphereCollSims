@@ -10,6 +10,7 @@
 #include "Coordinates.h"
 #include "CoefficientsOfRestitution.h"
 #include "ParticleIndex.h"
+#include "MassFunctions.h"
 
 // If you want to have a file with the information on high velocity impacts
 // you should define HIGH_VEL_OUTPUT and give it a numeric value of the
@@ -28,24 +29,18 @@ struct CollVelData {
 #endif
 		
 
-template<class BoundaryCondition,class CollisionFinder,class OutputMethod,class GCType=GCCoords,class CoefRest=En_Bridges_Et_0p5>
+template<class BoundaryCondition,class CollisionFinder,class OutputMethod,class GCType=GCCoords,class CoefRest=En_Bridges_Et_0p5, class MassFunc=StandardMass>
 class GCPopulation {
 	public:
-		GCPopulation(BoundaryCondition &bc,OutputMethod &om,double timeStep,double r,double densitygPcm3=0.5,double centralMass=5.68e26):
-				bounds(bc),out(om),dt(timeStep),r0(r),mCentral(centralMass) {
+		GCPopulation(BoundaryCondition &bc,OutputMethod &om,double timeStep,double r, MassFunc mf, double centralMass=5.68e26):
+				bounds(bc),out(om),dt(timeStep),r0(r),massFunc(mf) {
 			numBodies=0;
 			numReal=0;
 			maxRadius=0.0;
 			
 			r0*=1000;
-			velTocms=100*sqrt(6.67e-11*mCentral/r0);
+			velTocms=100*sqrt(6.67e-11*centralMass/r0);
 			
-			rhoFact=1.33333*3.14159*r0*r0*r0*1e3*densitygPcm3/mCentral;
-
-			rhoFact2=rhoFact;
-			alternateRhoIndex=(~0) ^ (1<<31);
-			alternateRhoRadius=1e100;
-
 #ifdef HIGH_VEL_OUTPUT
 			collVelFout = fopen("HighVelColls.bin", "wb");
 #endif
@@ -630,16 +625,6 @@ class GCPopulation {
 		int getNumReal() const { return numReal; }
 		void setNumReal(int num) { numReal=num; }
 
-		void setAlternateRhoIndex(int i,double densitygPcm3) {
-			alternateRhoIndex=i;
-			rhoFact2=1.33333*3.14159*r0*r0*r0*1e3*densitygPcm3/mCentral;
-		}
-
-		void setAlternateRhoRadius(double r,double densitygPcm3) {
-			alternateRhoRadius=r;
-			rhoFact2=1.33333*3.14159*r0*r0*r0*1e3*densitygPcm3/mCentral;
-		}
-
 		double getx(ParticleIndex pi) const { return cart[pi.i].x; }
 		double gety(ParticleIndex pi) const { return cart[pi.i].y; }
 		double getz(ParticleIndex pi) const { return cart[pi.i].z; }
@@ -689,10 +674,7 @@ class GCPopulation {
 		void setRadius(ParticleIndex pi,double r) { radius[pi.i]=r; }
 		double getTime(ParticleIndex pi) const { return time[pi.i]; }
 		double getMass(ParticleIndex pi) const {
-			double r=radius[pi.i];
-			if(pi.i>=alternateRhoIndex || r>alternateRhoRadius)
-				return r*r*r*rhoFact2;
-			return r*r*r*rhoFact;
+			return massFunc(pi, getRadius(pi));
 		}
 #ifdef SPIN
 		double getwx(ParticleIndex pi) { return omega[pi.i].x; }
@@ -760,15 +742,8 @@ class GCPopulation {
 		double dt;
 		double maxRadius;
 		double r0;
-		double rhoFact;
 		double velTocms;
-		double mCentral;
-
-		// These variables are used when some of the bodies have a
-		// different internal density.
-		double rhoFact2;
-		int alternateRhoIndex; // above this is special
-		double alternateRhoRadius; // above this is special
+		MassFunc massFunc;
 
 		omp_lock_t lock;
 };
