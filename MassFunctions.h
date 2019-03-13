@@ -1,6 +1,8 @@
 #ifndef MASS_FUNCTIONS
 #define MASS_FUNCTIONS
 
+#include<algorithm>
+
 /**
  * This file contains functions that calculate mass from density and radius.
  * Passing this in as a function allows me to not have conditionals in the
@@ -59,7 +61,7 @@ class MassRamp {
 		MassRamp(MF mf, int &s, int full): massFunc(mf), step(s), fullStep(full) {}
 		double operator()(ParticleIndex pi, double r) const {
 			double m = massFunc(pi, r);
-			if(step >= fullStep) return m;
+			if(std::min(step, 1) >= fullStep) return m;
 			else return step*m/fullStep;
 		}
 };
