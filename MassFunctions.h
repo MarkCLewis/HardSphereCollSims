@@ -61,8 +61,8 @@ class MassRamp {
 		MassRamp(MF mf, int &s, int full): massFunc(mf), step(s), fullStep(full) {}
 		double operator()(ParticleIndex pi, double r) const {
 			double m = massFunc(pi, r);
-			if(std::min(step, 1) >= fullStep) return m;
-			else return step*m/fullStep;
+			if(step >= fullStep) return m;
+			else return std::max(step, 1)*m/fullStep;
 		}
 };
 
