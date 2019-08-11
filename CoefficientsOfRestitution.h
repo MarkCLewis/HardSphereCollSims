@@ -23,6 +23,22 @@ public:
 private:
 };
 
+template<int EtPercent>
+class En_Bridges_Et {
+public:
+	static double EpsilonN(double velCmPerSec) {
+		double ret = 0.34*pow(velCmPerSec,-0.234);
+		if(ret>1.0) return 1.0;
+		else return ret;
+	}
+#ifdef SPIN
+	static double EpsilonT(double velCmPerSec) {
+		return 0.01*EtPercent;
+	}
+#endif
+private:
+};
+
 class En_0p5_Et_0p5 {
 public:
 	static double EpsilonN(double velCmPerSec) {

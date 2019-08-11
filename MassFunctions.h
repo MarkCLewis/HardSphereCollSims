@@ -13,7 +13,7 @@
 class StandardMass {
 		double rhoFact;
 	public:
-		StandardMass(double r0, double densitygPcm3=0.5, double centralMass=5.68e26) {
+		explicit StandardMass(double r0, double densitygPcm3=0.5, double centralMass=5.68e26) {
 			r0 *= 1000; // km to m conversion
 			rhoFact=1.33333*3.14159*r0*r0*r0*1e3*densitygPcm3/centralMass;
 		}
