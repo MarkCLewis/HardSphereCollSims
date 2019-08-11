@@ -97,23 +97,24 @@ class SlidingBrick {
 			int nb = pop.getNumBodies();
 			#pragma omp parallel for schedule(static)
 			for(int i=0; i<nb; ++i) {
-				while(pop.getx(i)<minx) {
-					pop.setx(i,pop.getx(i)+(maxx-minx));
-					pop.setvy(i,pop.getvy(i)-2.0*GCCoords::A0*(maxx-minx));
-					pop.adjustAfterForce(i);
+				ParticleIndex pi = {ii};
+				while(pop.getx(pi)<minx) {
+					pop.setx(pi,pop.getx(pi)+(maxx-minx));
+					pop.setvy(pi,pop.getvy(pi)-2.0*GCCoords::A0*(maxx-minx));
+					pop.adjustAfterForce(pi);
 				} 
-				while(pop.getx(i)>maxx) {
-					pop.setx(i,pop.getx(i)-(maxx-minx));
-					pop.setvy(i,pop.getvy(i)+2.0*GCCoords::A0*(maxx-minx));
-					pop.adjustAfterForce(i);
+				while(pop.getx(pi)>maxx) {
+					pop.setx(pi,pop.getx(pi)-(maxx-minx));
+					pop.setvy(pi,pop.getvy(pi)+2.0*GCCoords::A0*(maxx-minx));
+					pop.adjustAfterForce(pi);
 				}
-				while(pop.gety(i)<miny) {
-					pop.sety(i,pop.gety(i)+(maxy-miny));
-					pop.adjustAfterForce(i);
+				while(pop.gety(pi)<miny) {
+					pop.sety(pi,pop.gety(pi)+(maxy-miny));
+					pop.adjustAfterForce(pi);
 				} 
-				while(pop.gety(i)>maxy) {
-					pop.sety(i,pop.gety(i)-(maxy-miny));
-					pop.adjustAfterForce(i);
+				while(pop.gety(pi)>maxy) {
+					pop.sety(pi,pop.gety(pi)-(maxy-miny));
+					pop.adjustAfterForce(pi);
 				}
 			}
 		}
