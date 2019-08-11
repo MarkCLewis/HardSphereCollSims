@@ -96,7 +96,7 @@ class SlidingBrick {
 		void apply(Population &pop) {
 			int nb = pop.getNumBodies();
 			#pragma omp parallel for schedule(static)
-			for(int i=0; i<nb; ++i) {
+			for(int ii=0; ii<nb; ++ii) {
 				ParticleIndex pi = {ii};
 				while(pop.getx(pi)<minx) {
 					pop.setx(pi,pop.getx(pi)+(maxx-minx));
