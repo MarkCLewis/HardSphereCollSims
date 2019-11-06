@@ -40,6 +40,9 @@ class GCPopulation {
 			
 			r0*=1000;
 			velTocms=100*sqrt(6.67e-11*centralMass/r0);
+#ifdef DEBUG
+			printf("%e, %e, %e\n", centralMass, r0, velTocms);
+#endif
 			
 #ifdef HIGH_VEL_OUTPUT
 			collVelFout = fopen("HighVelColls.bin", "wb");
@@ -515,6 +518,10 @@ class GCPopulation {
 			gtz=pz-gnz;
 			double velCmPerSec = fabs(gn/mass1+gn/mass2)*VelocityToCMperS();
 			epsilon=CoefRest::EpsilonN(velCmPerSec);
+#ifdef DEBUG
+			printf("vel = %e, epsilon = %e\n", velCmPerSec, epsilon);
+			printf("convert = %e\n", VelocityToCMperS());
+#endif
 		//		if(mass1>mass2) epsilon*=mass2/mass1;
 		//		else if(mass2>mass1) epsilon*=mass1/mass2;
 //			if(radius[p1]>2e-7 || radius[p2]>2e-7) printf("epsilon=%e gn=%e result P=(%e %e %e)\n",epsilon,gn,px,py,pz);
@@ -548,19 +555,22 @@ class GCPopulation {
 			double uty = uy-uny;
 			double utz = uz-unz;
 
-//			printf("omega1 = %e, %e, %e\n",omega[p1].x,omega[p1].y,omega[p1].z);
-//			printf("omega2 = %e, %e, %e\n",omega[p2].x,omega[p2].y,omega[p2].z);
-//			printf("v = %e, %e, %e\n",vx,vy,vz);
-//			printf("R1 = %e, %e, %e\n",R1x,R1y,R1z);
-//			printf("sigma1 = %e, %e, %e\n",sigma1x,sigma1y,sigma1z);
-//			printf("R2 = %e, %e, %e\n",R2x,R2y,R2z);
-//			printf("sigma2 = %e, %e, %e\n",sigma2x,sigma2y,sigma2z);
-//			printf("sigma = %e, %e, %e\n",sigmax,sigmay,sigmaz);
-//			printf("u = %e, %e, %e\n",ux,uy,uz);
-//			printf("un = %e, %e, %e\n",unx,uny,unz);
-//			printf("ut = %e, %e, %e\n",utx,uty,utz);
+#ifdef DEBUG
+			printf("omega1 = %e, %e, %e\n",omega[p1.i].x,omega[p1.i].y,omega[p1.i].z);
+			printf("omega2 = %e, %e, %e\n",omega[p2.i].x,omega[p2.i].y,omega[p2.i].z);
+			printf("v = %e, %e, %e\n",vx,vy,vz);
+			printf("R1 = %e, %e, %e\n",R1x,R1y,R1z);
+			printf("sigma1 = %e, %e, %e\n",sigma1x,sigma1y,sigma1z);
+			printf("R2 = %e, %e, %e\n",R2x,R2y,R2z);
+			printf("sigma2 = %e, %e, %e\n",sigma2x,sigma2y,sigma2z);
+			printf("sigma = %e, %e, %e\n",sigmax,sigmay,sigmaz);
+			printf("u = %e, %e, %e\n",ux,uy,uz);
+			printf("un = %e, %e, %e\n",unx,uny,unz);
+			printf("ut = %e, %e, %e\n",utx,uty,utz);
+#endif
 
-			double epsilon_t = CoefRest::EpsilonT(velCmPerSec);
+			double epsilon_t = CoefRest::EpsilonT(sqrt(utx * utx +
+				uty * uty + utz * utz)*VelocityToCMperS());
 			double beta = 2.0/7.0;
 
 			cart[p1.i].vx += mass2/tmass*((1+epsilon)*unx+beta*(1-epsilon_t)*utx);
