@@ -458,6 +458,10 @@ class FileRecoverAll {
 			readLoc=0;
 			fread(&totalParticles,sizeof(int),1,fin);
 			findNextParticle();
+#ifdef SPIN
+			fseek(fin, 0, SEEK_END);
+			fileLen = ftell(fin);
+#endif
 		}
 
 		~FileRecoverAll() {
@@ -507,8 +511,13 @@ class FileRecoverAll {
 			fseek(fin,sizeof(int)+totalParticles*sizeof(CartCoords)+(readLoc-1)*sizeof(double),SEEK_SET);
 			fread(&radius,sizeof(double),1,fin);
 #ifdef SPIN
-			fseek(fin,sizeof(int)+totalParticles*(sizeof(CartCoords)+sizeof(double))+(readLoc-1)*sizeof(SpinVector),SEEK_SET);
-			fread(&spin,sizeof(SpinVector),1,fin);
+			size_t pos = sizeof(int)+totalParticles*(sizeof(CartCoords)+sizeof(double))+(readLoc-1)*sizeof(SpinVector);
+			if (pos < fileLen) {
+				fseek(fin, pos, SEEK_SET);
+				fread(&spin,sizeof(SpinVector),1,fin);
+			} else {
+				spin.x = spin.y = spin.z = 0.0;
+			}
 #endif
 		}
 
@@ -518,6 +527,7 @@ class FileRecoverAll {
 		CartCoords xyz;
 		double radius;
 #ifdef SPIN
+		long fileLen;
 		SpinVector spin;
 #endif
 };
