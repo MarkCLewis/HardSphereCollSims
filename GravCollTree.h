@@ -850,16 +850,16 @@ class GravCollTree {
 #ifdef PARALLEL
 					else if(oi<0) {
 //						printf("rp force %d of %d, %e %e %e %e\n",j,pool[n].numParts,remoteParticles[-oi].x,remoteParticles[-oi].y,remoteParticles[-oi].z,remoteParticles[-oi].mass);
-						double dx=remoteParticles[-oi].x+offsetX-pop.getx(i);
-						double dy=remoteParticles[-oi].y+offsetY-pop.gety(i);
-						double dz=remoteParticles[-oi].z-pop.getz(i);
+						double dx=remoteParticles[-oi.i].x+offsetX-pop.getx(pi);
+						double dy=remoteParticles[-oi.i].y+offsetY-pop.gety(pi);
+						double dz=remoteParticles[-oi.i].z-pop.getz(pi);
 						double dist=sqrt(dx*dx+dy*dy+dz*dz);
 #ifdef GRAV_STATS
 						IterCounter::recordSqr();
 						IterCounter::recordSqrt();
 #endif
 						if(dist>2*pop.getRadius(pi)) {
-							double mag=pop.getTimeStep()*remoteParticles[-oi].mass/(dist*dist*dist);
+							double mag=pop.getTimeStep()*remoteParticles[-oi.i].mass/(dist*dist*dist);
 							pop.setvx(pi,pop.getvx(pi)+dx*mag);
 							pop.setvy(pi,pop.getvy(pi)+dy*mag);
 							pop.setvz(pi,pop.getvz(pi)+dz*mag);
@@ -989,16 +989,16 @@ class GravCollTree {
 #ifdef PARALLEL
 						else if(oi<0) {
 							for(int j=0; j<pool[pulledNode].numParts; ++j) {
-								int i=pool[pulledNode].parts[j];
-								double dx=remoteParticles[-oi].x+offsetX-pop.getx(i);
-								double dy=remoteParticles[-oi].y+offsetY-pop.gety(i);
-								double dz=remoteParticles[-oi].z-pop.getz(i);
+								ParticleIndex pi(pool[pulledNode].parts[j]);
+								double dx=remoteParticles[-oi.i].x+offsetX-pop.getx(pi);
+								double dy=remoteParticles[-oi.i].y+offsetY-pop.gety(pi);
+								double dz=remoteParticles[-oi.i].z-pop.getz(pi);
 								double dist=sqrt(dx*dx+dy*dy+dz*dz);
-								if(dist>2*pop.getRadius(i)) {
-									double mag=pop.getTimeStep()*remoteParticles[-oi].mass/(dist*dist*dist);
-									acc[i].ax+=dx*mag;
-									acc[i].ay+=dy*mag;
-									acc[i].az+=dz*mag;
+								if(dist>2*pop.getRadius(pi)) {
+									double mag=pop.getTimeStep()*remoteParticles[-oi.i].mass/(dist*dist*dist);
+									acc[pi.i].ax+=dx*mag;
+									acc[pi.i].ay+=dy*mag;
+									acc[pi.i].az+=dz*mag;
 								}
 							}
 						}

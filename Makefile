@@ -1,4 +1,4 @@
-FLAGS=-Wall -pedantic -std=c++14 -Ofast -fopenmp -I/home/mlewis/workspace/RingsVersion3_OMP/
+FLAGS=-Wall -pedantic -std=c++11 -Ofast -fopenmp -I/home/mlewis/workspace/RingsVersion3_OMP/
 #FLAGS=-Ofast -LNO -march=auto -mso -mp -I/users/mlewis/workspace/RingsVersion3_OMP/
 
 RingsSim: RingsSim.cpp
@@ -27,7 +27,7 @@ GracenRingsSim: GracenRingsSim.cpp
 	g++ $(FLAGS) -o GracenRingsSim GracenRingsSim.cpp
 
 MPIGracenRingsSim: MPIGracenRingsSim.cpp
-	g++ $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
+	mpicc $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
 
 clean:
 

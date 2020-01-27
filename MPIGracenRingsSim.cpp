@@ -21,6 +21,7 @@
 //#include "BoundaryConditions.h"
 //#include "VariableGridCollisionHash.h"
 #include "FixedGridCollisionHash.h"
+#include "ProcessorCommunication.h"
 #include "Distributions.h"
 #include "SigmaDistributions.h"
 //#include "SigmaDistributions.h"
@@ -35,7 +36,7 @@
 //#include "GravTreeMirrors.h"
 #include "GravCollTree.h"
 #include "DoubleOutput.h"
-#include "SlidingBrickBoundaryConditions.h"
+#include "ParallelBoundaryConditions.h"
 
 int main(int argc,char **argv) {
 //	double minx=0.0060,maxx=0.0068,miny=0.04,maxy=0.1022;
@@ -56,7 +57,7 @@ int main(int argc,char **argv) {
 	double particleDensitygPercm3=0.5;
 	double sigma=45;
 	int step=0;
-
+	ProcessorCommunication pc(argc, argv);
 //	omp_set_num_threads(24);
 	
 
@@ -84,7 +85,7 @@ int main(int argc,char **argv) {
 //	typedef DoubleForce<KDGravTree,Forcing1> Forcing;
 //	typedef DoubleForce<ParticleMoonForcing,CollForcing> Forcing;
 
-	GravCollTree<Boundary> gt(0.3,bc);
+	GravCollTree<Boundary> gt(0.3,pc,bc);
 	CollForcing collForce;
 //	Forcing force;
 //	MoonForcing moon(moonMass,moonE,moonPhi);
