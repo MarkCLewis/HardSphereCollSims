@@ -23,6 +23,12 @@ TestMain: TestMain.cpp *.h
 SpinTestMain: SpinTestMain.cpp *.h
 	g++ $(FLAGS) -Wall -pedantic -o SpinTestMain SpinTestMain.cpp
 
+GracenRingsSim: GracenRingsSim.cpp
+	g++ $(FLAGS) -o GracenRingsSim GracenRingsSim.cpp
+
+MPIGracenRingsSim: MPIGracenRingsSim.cpp
+	g++ $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
+
 clean:
 
 all:
