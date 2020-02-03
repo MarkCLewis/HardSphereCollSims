@@ -27,7 +27,7 @@ GracenRingsSim: GracenRingsSim.cpp
 	g++ $(FLAGS) -o GracenRingsSim GracenRingsSim.cpp
 
 MPIGracenRingsSim: MPIGracenRingsSim.cpp
-	mpicc $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
+	mpiCC $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
 
 clean:
 

@@ -16,6 +16,12 @@ struct ParticleIndex {
 	bool operator>=(int a) { return i >= a; }
 	bool operator<(int a) { return i < a; }
 	bool operator<=(int a) { return i <= a; }
+	ParticleIndex& operator++(){
+		++i;
+		return *this;
+	}
+
+
 };
 
 #endif

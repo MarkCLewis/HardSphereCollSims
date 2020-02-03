@@ -105,12 +105,12 @@ class ParallelBoundary {
 			specificBounds.doNonPassedBounds(pop,minx,maxx,miny,maxy,minyTot,maxyTot);
 
 			// Only go up to numReal.  Others are thrown away.
-			for(int i=0; i<pop.getNumReal(); ++i) {
+			for(ParticleIndex pi{0}; pi<pop.getNumReal(); ++pi) {
 				// Check downstream.
 //				if(i%10000==0) printf("i[%d]=%e\n",i,pop.gety(i));
-				if(pop.gety(i)<miny) {
+				if(pop.gety(pi)<miny) {
 					if(pc.getProcessNum()==0 && wrapAround) {
-						specificBounds.belowMiny(pop,i,minx,maxx,miny,maxy,minyTot,maxyTot);
+						specificBounds.belowMiny(pop,pi,minx,maxx,miny,maxy,minyTot,maxyTot);
 					}
 					if(wrapAround || pc.getProcessNum()>0) {
 						commBuffer[0].resize(commBuffer[0].size()+7);
@@ -120,30 +120,30 @@ class ParallelBoundary {
 								commBuffer[0][2+7*numMoved[0]+j];
 							}
 						}
-						commBuffer[0][2+7*numMoved[0]]=pop.getx(i);
-						commBuffer[0][3+7*numMoved[0]]=pop.gety(i);
-						commBuffer[0][4+7*numMoved[0]]=pop.getz(i);
-						commBuffer[0][5+7*numMoved[0]]=pop.getvx(i);
-						commBuffer[0][6+7*numMoved[0]]=pop.getvy(i);
-						commBuffer[0][7+7*numMoved[0]]=pop.getvz(i);
-						commBuffer[0][8+7*numMoved[0]]=pop.getRadius(i);
+						commBuffer[0][2+7*numMoved[0]]=pop.getx(pi);
+						commBuffer[0][3+7*numMoved[0]]=pop.gety(pi);
+						commBuffer[0][4+7*numMoved[0]]=pop.getz(pi);
+						commBuffer[0][5+7*numMoved[0]]=pop.getvx(pi);
+						commBuffer[0][6+7*numMoved[0]]=pop.getvy(pi);
+						commBuffer[0][7+7*numMoved[0]]=pop.getvz(pi);
+						commBuffer[0][8+7*numMoved[0]]=pop.getRadius(pi);
 						numMoved[0]++;
-						removed.push_back(i);
+						removed.push_back(pi);
 					}
-				} else if(pop.gety(i)<miny+bufferSize && pc.getProcessNum()>0) {
+				} else if(pop.gety(pi)<miny+bufferSize && pc.getProcessNum()>0) {
 					commBuffer[0].resize(commBuffer[0].size()+7);
-					commBuffer[0][2+7*numMoved[0]+7*numBuffer[0]]=pop.getx(i);
-					commBuffer[0][3+7*numMoved[0]+7*numBuffer[0]]=pop.gety(i);
-					commBuffer[0][4+7*numMoved[0]+7*numBuffer[0]]=pop.getz(i);
-					commBuffer[0][5+7*numMoved[0]+7*numBuffer[0]]=pop.getvx(i);
-					commBuffer[0][6+7*numMoved[0]+7*numBuffer[0]]=pop.getvy(i);
-					commBuffer[0][7+7*numMoved[0]+7*numBuffer[0]]=pop.getvz(i);
-					commBuffer[0][8+7*numMoved[0]+7*numBuffer[0]]=pop.getRadius(i);
+					commBuffer[0][2+7*numMoved[0]+7*numBuffer[0]]=pop.getx(pi);
+					commBuffer[0][3+7*numMoved[0]+7*numBuffer[0]]=pop.gety(pi);
+					commBuffer[0][4+7*numMoved[0]+7*numBuffer[0]]=pop.getz(pi);
+					commBuffer[0][5+7*numMoved[0]+7*numBuffer[0]]=pop.getvx(pi);
+					commBuffer[0][6+7*numMoved[0]+7*numBuffer[0]]=pop.getvy(pi);
+					commBuffer[0][7+7*numMoved[0]+7*numBuffer[0]]=pop.getvz(pi);
+					commBuffer[0][8+7*numMoved[0]+7*numBuffer[0]]=pop.getRadius(pi);
 					numBuffer[0]++;
-				} else if(pop.gety(i)>maxy) {
+				} else if(pop.gety(pi)>maxy) {
 				// Check upstream.
 					if(pc.getProcessNum()==pc.getNumProcesses()-1 && wrapAround) {
-						specificBounds.aboveMaxy(pop,i,minx,maxx,miny,maxy,minyTot,maxyTot);
+						specificBounds.aboveMaxy(pop,pi,minx,maxx,miny,maxy,minyTot,maxyTot);
 					}
 					if(wrapAround || pc.getProcessNum()<pc.getNumProcesses()-1) {
 						commBuffer[1].resize(commBuffer[1].size()+7);
@@ -153,25 +153,25 @@ class ParallelBoundary {
 								commBuffer[1][2+7*numMoved[1]+j];
 							}
 						}
-						commBuffer[1][2+7*numMoved[1]]=pop.getx(i);
-						commBuffer[1][3+7*numMoved[1]]=pop.gety(i);
-						commBuffer[1][4+7*numMoved[1]]=pop.getz(i);
-						commBuffer[1][5+7*numMoved[1]]=pop.getvx(i);
-						commBuffer[1][6+7*numMoved[1]]=pop.getvy(i);
-						commBuffer[1][7+7*numMoved[1]]=pop.getvz(i);
-						commBuffer[1][8+7*numMoved[1]]=pop.getRadius(i);
+						commBuffer[1][2+7*numMoved[1]]=pop.getx(pi);
+						commBuffer[1][3+7*numMoved[1]]=pop.gety(pi);
+						commBuffer[1][4+7*numMoved[1]]=pop.getz(pi);
+						commBuffer[1][5+7*numMoved[1]]=pop.getvx(pi);
+						commBuffer[1][6+7*numMoved[1]]=pop.getvy(pi);
+						commBuffer[1][7+7*numMoved[1]]=pop.getvz(pi);
+						commBuffer[1][8+7*numMoved[1]]=pop.getRadius(pi);
 						numMoved[1]++;
-						removed.push_back(i);
+						removed.push_back(pi);
 					}
-				} else if(pop.gety(i)>maxy-bufferSize && pc.getProcessNum()<pc.getNumProcesses()-1) {
+				} else if(pop.gety(pi)>maxy-bufferSize && pc.getProcessNum()<pc.getNumProcesses()-1) {
 					commBuffer[1].resize(commBuffer[1].size()+7);
-					commBuffer[1][2+7*numMoved[1]+7*numBuffer[1]]=pop.getx(i);
-					commBuffer[1][3+7*numMoved[1]+7*numBuffer[1]]=pop.gety(i);
-					commBuffer[1][4+7*numMoved[1]+7*numBuffer[1]]=pop.getz(i);
-					commBuffer[1][5+7*numMoved[1]+7*numBuffer[1]]=pop.getvx(i);
-					commBuffer[1][6+7*numMoved[1]+7*numBuffer[1]]=pop.getvy(i);
-					commBuffer[1][7+7*numMoved[1]+7*numBuffer[1]]=pop.getvz(i);
-					commBuffer[1][8+7*numMoved[1]+7*numBuffer[1]]=pop.getRadius(i);
+					commBuffer[1][2+7*numMoved[1]+7*numBuffer[1]]=pop.getx(pi);
+					commBuffer[1][3+7*numMoved[1]+7*numBuffer[1]]=pop.gety(pi);
+					commBuffer[1][4+7*numMoved[1]+7*numBuffer[1]]=pop.getz(pi);
+					commBuffer[1][5+7*numMoved[1]+7*numBuffer[1]]=pop.getvx(pi);
+					commBuffer[1][6+7*numMoved[1]+7*numBuffer[1]]=pop.getvy(pi);
+					commBuffer[1][7+7*numMoved[1]+7*numBuffer[1]]=pop.getvz(pi);
+					commBuffer[1][8+7*numMoved[1]+7*numBuffer[1]]=pop.getRadius(pi);
 					numBuffer[1]++;
 				}
 
@@ -285,14 +285,15 @@ class ParallelBoundary {
 						pop.adjustAfterForce(removed[copiedOver]);
 						copiedOver++;
 					} else {
-						pop.setx(numBodies,commBuffer[j][2+i*7]);
-						pop.sety(numBodies,commBuffer[j][3+i*7]);
-						pop.setz(numBodies,commBuffer[j][4+i*7]);
-						pop.setvx(numBodies,commBuffer[j][5+i*7]);
-						pop.setvy(numBodies,commBuffer[j][6+i*7]);
-						pop.setvz(numBodies,commBuffer[j][7+i*7]);
-						pop.setRadius(numBodies,commBuffer[j][8+i*7]);
-						pop.adjustAfterForce(numBodies);
+						ParticleIndex nb{numBodies};
+						pop.setx(nb,commBuffer[j][2+i*7]);
+						pop.sety(nb,commBuffer[j][3+i*7]);
+						pop.setz(nb,commBuffer[j][4+i*7]);
+						pop.setvx(nb,commBuffer[j][5+i*7]);
+						pop.setvy(nb,commBuffer[j][6+i*7]);
+						pop.setvz(nb,commBuffer[j][7+i*7]);
+						pop.setRadius(nb,commBuffer[j][8+i*7]);
+						pop.adjustAfterForce(nb);
 						numBodies++;
 					}
 				}
@@ -302,28 +303,29 @@ class ParallelBoundary {
 			if(copiedOver<removed.size()) {
 				for(unsigned int i=copiedOver; i<removed.size() && removed[i]<=numBodies-1; ++i) {
 					bool flag=true;
-					while(flag && numBodies-1>=removed[i]) {
+					while(flag && numBodies-1>=removed[i].i) {
 						flag=false;
 						for(unsigned int j=i; j<removed.size() && !flag; ++j)
-							if(removed[j]==numBodies-1) {
+							if(removed[j].i==numBodies-1) {
 								numBodies--;
 								flag=true;
 							}
 					}
 					if(removed[i]<numBodies-1) {
-						pop.setx(removed[i],pop.getx(numBodies-1));
-						pop.sety(removed[i],pop.gety(numBodies-1));
-						pop.setz(removed[i],pop.getz(numBodies-1));
-						pop.setvx(removed[i],pop.getvx(numBodies-1));
-						pop.setvy(removed[i],pop.getvy(numBodies-1));
-						pop.setvz(removed[i],pop.getvz(numBodies-1));
-						pop.setX(removed[i],pop.getX(numBodies-1));
-						pop.setY(removed[i],pop.getY(numBodies-1));
-						pop.sete(removed[i],pop.gete(numBodies-1));
-						pop.seti(removed[i],pop.geti(numBodies-1));
-						pop.setPhi(removed[i],pop.getPhi(numBodies-1));
-						pop.setZeta(removed[i],pop.getZeta(numBodies-1));
-						pop.setRadius(removed[i],pop.getRadius(numBodies-1));
+						ParticleIndex nb1{numBodies - 1};
+						pop.setx(removed[i],pop.getx(nb1));
+						pop.sety(removed[i],pop.gety(nb1));
+						pop.setz(removed[i],pop.getz(nb1));
+						pop.setvx(removed[i],pop.getvx(nb1));
+						pop.setvy(removed[i],pop.getvy(nb1));
+						pop.setvz(removed[i],pop.getvz(nb1));
+						pop.setX(removed[i],pop.getX(nb1));
+						pop.setY(removed[i],pop.getY(nb1));
+						pop.sete(removed[i],pop.gete(nb1));
+						pop.seti(removed[i],pop.geti(nb1));
+						pop.setPhi(removed[i],pop.getPhi(nb1));
+						pop.setZeta(removed[i],pop.getZeta(nb1));
+						pop.setRadius(removed[i],pop.getRadius(nb1));
 						numBodies--;	// Put new particles one back.
 					}
 				}
@@ -333,14 +335,15 @@ class ParallelBoundary {
 			// Add buffer particles.
 			for(int j=0; j<2; ++j) {
 				for(int i=numMoved[j]; i<numMoved[j]+numBuffer[j]; ++i) {
-					pop.setx(numBodies,commBuffer[j][2+i*7]);
-					pop.sety(numBodies,commBuffer[j][3+i*7]);
-					pop.setz(numBodies,commBuffer[j][4+i*7]);
-					pop.setvx(numBodies,commBuffer[j][5+i*7]);
-					pop.setvy(numBodies,commBuffer[j][6+i*7]);
-					pop.setvz(numBodies,commBuffer[j][7+i*7]);
-					pop.setRadius(numBodies,commBuffer[j][8+i*7]);
-					pop.adjustAfterForce(numBodies);
+					ParticleIndex nb{numBodies};
+					pop.setx(nb,commBuffer[j][2+i*7]);
+					pop.sety(nb,commBuffer[j][3+i*7]);
+					pop.setz(nb,commBuffer[j][4+i*7]);
+					pop.setvx(nb,commBuffer[j][5+i*7]);
+					pop.setvy(nb,commBuffer[j][6+i*7]);
+					pop.setvz(nb,commBuffer[j][7+i*7]);
+					pop.setRadius(nb,commBuffer[j][8+i*7]);
+					pop.adjustAfterForce(nb);
 					numBodies++;
 				}
 			}
@@ -381,7 +384,7 @@ class ParallelBoundary {
 		// They are encoded as numMoved,numBuffer,x1,y1,z1,vx1,vy1,vz1,x2,...
 		std::vector<double> commBuffer[2];
 		std::vector<double> recBuffer;
-		std::vector<int> removed;
+		std::vector<ParticleIndex> removed;
 		std::vector<double> sizeBuffer;
 };
 
@@ -802,28 +805,28 @@ class SpecificSlidingBrick {
 
 		template<class Population>
 		void doNonPassedBounds(Population &pop,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
-			for(int i=0; i<pop.getNumReal(); ++i) {
-				while(pop.getx(i)<minx) {
+			for(ParticleIndex pi{0}; pi<pop.getNumReal(); ++pi) {
+				while(pop.getx(pi)<minx) {
 //					printf("Low side %e\n",pop.getx(i));
-					pop.setx(i,pop.getx(i)+(maxx-minx));
+					pop.setx(pi,pop.getx(pi)+(maxx-minx));
 //					printf("After %e\n",pop.getx(i));
-					double newy=pop.gety(i)+2*shearOffset;
+					double newy=pop.gety(pi)+2*shearOffset;
 					while(newy>maxyTot) newy-=(maxyTot-minyTot);
 					while(newy<minyTot) newy+=(maxyTot-minyTot);
-					pop.sety(i,newy);
-					pop.setvy(i,pop.getvy(i)-2.0*GCCoords::A0*(maxx-minx));
-					pop.adjustAfterForce(i);
+					pop.sety(pi,newy);
+					pop.setvy(pi,pop.getvy(pi)-2.0*GCCoords::A0*(maxx-minx));
+					pop.adjustAfterForce(pi);
 				}
-				while(pop.getx(i)>maxx) {
+				while(pop.getx(pi)>maxx) {
 //					printf("High side %e\n",pop.getx(i));
-					pop.setx(i,pop.getx(i)-(maxx-minx));
+					pop.setx(pi,pop.getx(pi)-(maxx-minx));
 //					printf("After %e\n",pop.getx(i));
-					double newy=pop.gety(i)-2*shearOffset;
+					double newy=pop.gety(pi)-2*shearOffset;
 					while(newy>maxyTot) newy-=(maxyTot-minyTot);
 					while(newy<minyTot) newy+=(maxyTot-minyTot);
-					pop.sety(i,newy);
-					pop.setvy(i,pop.getvy(i)+2.0*GCCoords::A0*(maxx-minx));
-					pop.adjustAfterForce(i);
+					pop.sety(pi,newy);
+					pop.setvy(pi,pop.getvy(pi)+2.0*GCCoords::A0*(maxx-minx));
+					pop.adjustAfterForce(pi);
 				}
 			}
 
@@ -832,23 +835,23 @@ class SpecificSlidingBrick {
 		}
 
 		template<class Population>
-		void belowMiny(Population &pop,int i,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
-			pop.setY(i,pop.getY(i)+(maxyTot-minyTot));
-			pop.setCartAfterForce(i);
+		void belowMiny(Population &pop,ParticleIndex pi,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
+			pop.setY(pi,pop.getY(pi)+(maxyTot-minyTot));
+			pop.setCartAfterForce(pi);
 		}
 
 		template<class Population>
-		void aboveMaxy(Population &pop,int i,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
-			pop.setY(i,pop.getY(i)-(maxyTot-minyTot));
-			pop.setCartAfterForce(i);
+		void aboveMaxy(Population &pop,ParticleIndex pi,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
+			pop.setY(pi,pop.getY(pi)-(maxyTot-minyTot));
+			pop.setCartAfterForce(pi);
 		}
 
 		template<class Population>
-		void belowMinx(Population &pop,int i,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
+		void belowMinx(Population &pop,ParticleIndex pi,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
 		}
 
 		template<class Population>
-		void aboveMaxx(Population &pop,int i,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
+		void aboveMaxx(Population &pop,ParticleIndex pi,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
 		}
 
 		double getShearOffset() { return shearOffset;}

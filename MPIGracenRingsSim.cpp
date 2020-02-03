@@ -62,8 +62,8 @@ int main(int argc,char **argv) {
 	
 
 /***** Boundary Setup ********/
-	typedef SpecificSlidingBrick Boundary;
-	Boundary bc;
+	typedef SpecificSlidingBrick SpecificBC;
+	SpecificBC sbc;
 //	typedef PeriodicWithPhiShift Boundary;
 //	typedef FixedPeriodic Boundary;
 //	Boundary bc(minx,maxx,miny,maxy);
@@ -71,6 +71,7 @@ int main(int argc,char **argv) {
 //	typedef SingleOrbitAzimuthal Boundary;
 //	Boundary bc(minx,maxx,miny);
 
+	
 //	typedef ParallelPeriodicWithPhiShift<CollForcing> Boundary;
 //	Boundary bc(minx,maxx,miny,maxy,pc,collForce);
 
@@ -80,23 +81,25 @@ int main(int argc,char **argv) {
 /***** Forcing Setup ********/
 	typedef FixedGridCollisionHash Hash;
 //	typedef VariableGridCollisionHash Hash;
-	typedef CollisionForcing<Hash> CollForcing;
+	typedef CollisionForcing<Hash> Forcing;
 //	typedef TreeCollisionForcing<GravCollTree<Boundary> > CollForcing;
-	typedef DoubleForce<GravCollTree<Boundary>, CollForcing> Forcing;
+//	typedef DoubleForce<GravCollTree<Boundary>, CollForcing> Forcing;
 //	typedef DoubleForce<KDGravTree,Forcing1> Forcing;
 //	typedef DoubleForce<ParticleMoonForcing,CollForcing> Forcing;
 
 //	GravCollTree<Boundary> gt(0.3,pc,bc);
-	GravCollTree<Boundary> gt(0.3,pc,bc);
-	CollForcing collForce;
-//	Forcing force;
+//	GravCollTree<Boundary> gt(0.3,pc,bc);
+//	CollForcing collForce;
+	Forcing force;
 //	MoonForcing moon(moonMass,moonE,moonPhi);
 //	Forcing1 force1(moon,collForce);
 //	ParticleMoonForcing pmf(1e-7);
 //	Forcing force(pmf,force1);
 //	Forcing force(pmf,collForce);
-	Forcing force(gt,collForce);
+//	Forcing force(gt,collForce);
 
+	typedef ParallelBoundary<SpecificBC,Forcing> Boundary;
+	Boundary bc(sbc,minx,maxx,miny,maxy,pc,force);
 
 /***** Output Setup ********/
 //	typedef VelocityEllipsoidOutput Output;
