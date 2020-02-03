@@ -62,10 +62,11 @@ int main(int argc,char **argv) {
 	
 
 /***** Boundary Setup ********/
-	typedef SlidingBrick Boundary;
+	typedef SpecificSlidingBrick Boundary;
+	Boundary bc;
 //	typedef PeriodicWithPhiShift Boundary;
 //	typedef FixedPeriodic Boundary;
-	Boundary bc(minx,maxx,miny,maxy);
+//	Boundary bc(minx,maxx,miny,maxy);
 
 //	typedef SingleOrbitAzimuthal Boundary;
 //	Boundary bc(minx,maxx,miny);
@@ -85,6 +86,7 @@ int main(int argc,char **argv) {
 //	typedef DoubleForce<KDGravTree,Forcing1> Forcing;
 //	typedef DoubleForce<ParticleMoonForcing,CollForcing> Forcing;
 
+//	GravCollTree<Boundary> gt(0.3,pc,bc);
 	GravCollTree<Boundary> gt(0.3,pc,bc);
 	CollForcing collForce;
 //	Forcing force;

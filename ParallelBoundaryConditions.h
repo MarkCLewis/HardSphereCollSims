@@ -493,7 +493,7 @@ class SpecificSingleOrbitAzimuthal {
 
 		double getShearOffset() { return 0.0;}
 };
-
+/*
 class SpecificFixedPeriodic {
 	public:
 		SpecificFixedPeriodic(bool zero=false):zeroeOnWrap(zero) {
@@ -544,7 +544,7 @@ class SpecificFixedPeriodic {
 	private:
 		bool zeroeOnWrap;
 };
-
+*/
 class SpecificFixedSingleOrbitAzimuthal {
 	public:
 		bool checkIfIn(double x,double y,double minx,double maxx,double miny,double maxy,double minyTot,double maxyTot) {
