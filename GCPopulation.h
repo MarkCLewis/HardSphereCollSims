@@ -363,8 +363,8 @@ class GCPopulation {
 			for(int i=0; i<numBodies; ++i) {
 				double t=dt-time[i];
 				gc[i].advance(t);
-                while(gc[i].phi>6.283185307) gc[i].phi-=6.283185307;
-                while(gc[i].zeta>6.283185307) gc[i].zeta-=6.283185307;
+				while(gc[i].phi>6.283185307) gc[i].phi-=6.283185307;
+				while(gc[i].zeta>6.283185307) gc[i].zeta-=6.283185307;
 				cart[i].set(gc[i]);
 				time[i]=0.0;
 			}
@@ -468,6 +468,11 @@ class GCPopulation {
 				printf("%d [%d, %d] at %e: We have a collision with separation of %e for particles of size %e and %e\n",omp_get_thread_num(),p1.i,p2.i,t,dmag,radius[p1.i],radius[p2.i]);
 				return;
 			} else if(dmag < radius[p1.i]+radius[p2.i]) { // overlapping so pull apart
+#ifdef DEBUG
+				if (dmag < (radius[p1.i]+radius[p2.i])*0.9) {
+					printf("ERROR!! Serious overlap. %d %d %f\n", p1.i, p2.i, dmag / (radius[p1.i]+radius[p2.i]));
+				}
+#endif
 				//printf("Overlap: pushing apart %e<%e+%e\n",dmag,radius[p1],radius[p2]);
 				double move=radius[p1.i]+radius[p2.i]-dmag; // half the overlap
 				double move1=mass2/tmass;
@@ -483,10 +488,18 @@ class GCPopulation {
 				cart[p2.i].x+=dx*move2;
 				cart[p2.i].y+=dy*move2;
 				cart[p2.i].z+=dz*move2;
+				// Set the carts here in case gn < 0 and we jump out early.
+				gc[p1.i].set(cart[p1.i]);
+				gc[p2.i].set(cart[p2.i]);
 				dx=cart[p1.i].x-cart[p2.i].x;
 				dy=cart[p1.i].y-cart[p2.i].y;
 				dz=cart[p1.i].z-cart[p2.i].z;
 				dmag=sqrt(dx*dx+dy*dy+dz*dz);
+#ifdef DEBUG
+				if (dmag < (radius[p1.i]+radius[p2.i]*0.999)) {
+					printf("ERROR!! Overlap after push apart. %d %d\n", p1.i, p2.i);
+				}
+#endif
 			}
 			dx=(cart[p2.i].x-cart[p1.i].x)/dmag;
 			dy=(cart[p2.i].y-cart[p1.i].y)/dmag;
@@ -607,6 +620,7 @@ class GCPopulation {
 			cart[p2.i].vz=cmpz-pz/mass2;
 #endif
 
+#ifdef DEBUG
 		//	printf("Final vels (%e %e %e)\n   (%e %e %e)\n\n",cart[p1].vx,cart[p1].vy,cart[p1].vz,cart[p2].vx,cart[p2].vy,cart[p2].vz);
 			if((cart[p2.i].vx-cart[p1.i].vx)*(cart[p2.i].x-cart[p1.i].x)+(cart[p2.i].vy-cart[p1.i].vy)*(cart[p2.i].y-cart[p1.i].y)+(cart[p2.i].vz-cart[p1.i].vz)*(cart[p2.i].z-cart[p1.i].z)<0.0) {
 				printf("After collision particles heading toward one another %d %d.\n",p1.i,p2.i);
@@ -614,7 +628,12 @@ class GCPopulation {
 				printf("Locations p2 - %e %e %e %e %e %e\n",cart[p2.i].x,cart[p2.i].y,cart[p2.i].z,cart[p2.i].vx,cart[p2.i].vy,cart[p2.i].vz);
 				if(p1.i>=5000 || p2.i>=5000) exit(1);
 			}
-		
+			if(sqrt((cart[p1.i].x-cart[p2.i].x)*(cart[p1.i].x-cart[p2.i].x) + 
+				 (cart[p1.i].y-cart[p2.i].y)*(cart[p1.i].y-cart[p2.i].y) +
+				 (cart[p1.i].z-cart[p2.i].z)*(cart[p1.i].z-cart[p2.i].z)) < 0.99*(radius[p1.i]+radius[p2.i])) {
+				printf("Overlap at end of collision %d %d\n", p1.i, p2.i);
+			}
+#endif		
 			// Set the new end positions
 			gc[p1.i].set(cart[p1.i]);
 			gc[p2.i].set(cart[p2.i]);
@@ -632,6 +651,7 @@ class GCPopulation {
 			omega.resize(num);
 #endif
 		}
+
 		int getNumReal() const { return numReal; }
 		void setNumReal(int num) { numReal=num; }
 

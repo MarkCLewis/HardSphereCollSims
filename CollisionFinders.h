@@ -565,7 +565,6 @@ class FullLinearFinder {
 			double dist_sqr,dot;
 			dist_sqr=cartDistance(cc1,cc2,dot);
 			if(dist_sqr<=rad_sqr*1.00000001) {
-				if(dot<0.0) {
 #ifdef STATS
 					IterCounter::recordIters(0,4);
 					IterCounter::recordCalls(calls,4);
@@ -581,13 +580,6 @@ class FullLinearFinder {
 						//printf("%e %e\n",dt*0.0001,0.001*minRad/vel);
 						return(max_time+0.001*minRad/vel);
 					}
-				} else {
-#ifdef STATS
-					IterCounter::recordIters(0,2);
-					IterCounter::recordCalls(calls,2);
-#endif
-					return -2;
-				}
 			}
 			if(dot>0.0) {
 #ifdef STATS
@@ -612,19 +604,11 @@ class FullLinearFinder {
 			double dist_sqr,dot;
 			dist_sqr=cartDistance(cc1,cc2,dot);
 			if(dist_sqr<=rad_sqr*1.00000001) {
-				if(dot<0.0) {
 #ifdef STATS
 					IterCounter::recordIters(0,4);
 					IterCounter::recordCalls(calls,4);
 #endif
 					return(dt*0.0001);
-				} else {
-#ifdef STATS
-					IterCounter::recordIters(0,2);
-					IterCounter::recordCalls(calls,2);
-#endif
-					return -2;
-				}
 			}
 			if(dot>0.0) {
 #ifdef STATS

@@ -4,6 +4,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
+#include <tuple>
+#include <functional>
 
 //#define LOCK_GRAPH
 
@@ -14,6 +17,10 @@ const int DIM=3;
 using std::vector;
 using std::min;
 using std::max;
+using std::unordered_set;
+using std::tuple;
+using std::make_tuple;
+
 /* Uncomment after fixing ParticleIndex
 struct KDNodeIndex {
 	int i;
@@ -44,6 +51,29 @@ long long int IterCounter::sqrCnt;
 long long int IterCounter::sqrtCnt;
 
 #endif
+
+struct TwoTupleHash {
+	size_t operator()(const tuple<int, int> &t) const {
+		return std::get<0>(t) + 13*std::get<1>(t);
+	}
+};
+
+struct CollisionSetBuilder {
+	unordered_set<tuple<int, int>, TwoTupleHash> &treeSet;
+	CollisionSetBuilder(unordered_set<tuple<int, int>, TwoTupleHash> &ts): treeSet(ts) {}
+
+	template<typename Population>
+	void operator()(Population &pop, ParticleIndex pi, ParticleIndex pj) {
+		double dx = pop.getx(pi) - pop.getx(pj);
+		double dy = pop.gety(pi) - pop.gety(pj);
+		double dz = pop.getz(pi) - pop.getz(pj);
+		if (dx*dx + dy*dy + dz*dz < (pop.getRadius(pi)+pop.getRadius(pj)) * (pop.getRadius(pi)+pop.getRadius(pj))) {
+			int pmin = min(pi.i, pj.i);
+			int pmax = max(pi.i, pj.i);
+			treeSet.insert(make_tuple(pmin, pmax));
+		}
+	}
+};
 
 struct KDNode {
 	int splitDim;
@@ -210,6 +240,9 @@ class GravCollTree {
 				pop.adjustAfterForce(pj);
 			}
 #else // for PFORCE
+#ifdef DEBUG
+			verifyOverlaps(pop);
+#endif
 			#pragma omp parallel for schedule(dynamic,100)
 			for(int ii=0; ii<nb; ++ii) {
 				ParticleIndex pi = {ii};
@@ -333,8 +366,8 @@ class GravCollTree {
 			runThroughCollisionPairs(pop,action);
 		}
 
-		template<class Population,class ActionType>
-		void runThroughCollisionPairs(Population &pop,ActionType &action) {
+		template<class Population,typename ActionType>
+		void runThroughCollisionPairs(Population &pop, ActionType& action) {
 			//Recurse through the top maxDepth levels of the tree.
 			//Instead of making further recursive calls, store the parameters for
 			//each call as a RecurseInfo and store it in the info queue.
@@ -400,6 +433,36 @@ class GravCollTree {
 			pool[particleLockNodes[pi.i]].inUse = val;
 		}
 #endif
+
+		template<class Population>
+		bool verifyOverlaps(Population &pop) {
+			unordered_set<tuple<int, int>, TwoTupleHash> bfSet;
+			unordered_set<tuple<int, int>, TwoTupleHash> treeSet;
+
+			for (ParticleIndex pi = {0}; pi < pop.getNumBodies(); ++pi.i) {
+				for (ParticleIndex pj = {pi.i+1}; pj < pop.getNumBodies(); ++pj.i) {
+					double dx = pop.getx(pi) - pop.getx(pj);
+					double dy = pop.gety(pi) - pop.gety(pj);
+					double dz = pop.getz(pi) - pop.getz(pj);
+					if (dx*dx + dy*dy + dz*dz < (pop.getRadius(pi)+pop.getRadius(pj)) * (pop.getRadius(pi)+pop.getRadius(pj))) {
+						bfSet.insert(make_tuple(pi.i, pj.i));
+					}
+				}
+			}
+			CollisionSetBuilder action(treeSet);
+			runThroughCollisionPairs(pop, action);
+
+			printf("BF overlaps: %ld, Tree overlaps: %ld\n", bfSet.size(), treeSet.size());
+			if (bfSet != treeSet) {
+				for (auto pair: treeSet) bfSet.erase(pair);
+				printf("Missing overlaps: %ld\n", bfSet.size());
+				for (auto pair: bfSet) printf("%d %d\n", std::get<0>(pair), std::get<1>(pair));
+			}
+
+			return bfSet == treeSet;
+		}
+
+
 
 	private:
 #ifndef LOCK_GRAPH
@@ -738,7 +801,7 @@ class GravCollTree {
 #endif
 		}
 
-		template<class Population,class ActionType>
+		template<class Population,typename ActionType>
 		void recurseForAll(Population &pop,ActionType &action,int node1,int node2,std::vector<RecurseInfo> &info,int depth=0) {
 			if (depth >= maxDepth)
 			{
@@ -838,14 +901,20 @@ class GravCollTree {
 						double dy=pop.gety(oi)+offsetY-pop.gety(pi);
 						double dz=pop.getz(oi)-pop.getz(pi);
 						double dist=sqrt(dx*dx+dy*dy+dz*dz);
+						if (dist > pop.getRadius(pi) + pop.getRadius(oi)) {
 #ifdef GRAV_STATS
-						IterCounter::recordSqr();
-						IterCounter::recordSqrt();
+							IterCounter::recordSqr();
+							IterCounter::recordSqrt();
 #endif
-						double mag=pop.getTimeStep()*pop.getMass(oi)/(dist*dist*dist);
-						pop.setvx(pi,pop.getvx(pi)+dx*mag);
-						pop.setvy(pi,pop.getvy(pi)+dy*mag);
-						pop.setvz(pi,pop.getvz(pi)+dz*mag);
+							double mag=pop.getTimeStep()*pop.getMass(oi)/(dist*dist*dist);
+							pop.setvx(pi,pop.getvx(pi)+dx*mag);
+							pop.setvy(pi,pop.getvy(pi)+dy*mag);
+							pop.setvz(pi,pop.getvz(pi)+dz*mag);
+						} else if (dist < (pop.getRadius(pi) + pop.getRadius(oi))*0.99 && offsetX == 0.0 && offsetY == 0.0) {
+							// Note that this can happen due to the initial conditions or the application of boundary conditions. 
+							// It should not happen to more than a few particles per step after the first few steps.
+							printf("Warning: Overlapping Gravity without offsets %d %d %e %e %e %f\n", pi.i, oi.i, dist, pop.getRadius(pi), pop.getRadius(oi), dist/(pop.getRadius(pi) + pop.getRadius(oi)));
+						}
 					}
 #ifdef PARALLEL
 					else if(oi<0) {
