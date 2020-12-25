@@ -29,6 +29,9 @@ GracenRingsSim: GracenRingsSim.cpp
 MPIGracenRingsSim: MPIGracenRingsSim.cpp
 	mpicc $(FLAGS) -o MPIGracenRingsSim MPIGracenRingsSim.cpp
 
+FourthOrderIntegrator: FourthOrderIntegrator.cpp
+	g++ $(FLAGS) -o FourthOrderIntegrator FourthOrderIntegrator.cpp
+
 clean:
 
 all:
