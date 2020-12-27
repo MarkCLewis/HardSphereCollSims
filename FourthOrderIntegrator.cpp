@@ -33,6 +33,15 @@ struct vect3 {
 
 using std::vector;
 
+inline double sigmoid(double x) { 
+  return 1.0/(1.0+exp(-x)); 
+}
+inline double sigmoidP(double x) = {
+  if (x > 100.0) return 0.0;
+  double denom = exp(x)+1.0;
+  return exp(x)/(denom * denom); 
+}
+
 void calcAccJerk(const vector<vect3> &pos, const vector<vect3> &vel, const vector<double> &rad, double rho, 
         vector<vect3> &acc, vector<vect3> &jerk) {
   for (vector<CartCoords>::size_type i = 0; i < pos.size(); ++i) {
@@ -92,6 +101,20 @@ void evolveStep(vector<vect3> &pos,vector<vect3> &vel, const vector<double> &rad
   predictStep(pos, vel, acc, jerk, dt);
   calcAccJerk(pos, vel, rad, rho, acc, jerk);
   correctStep(pos, vel, acc, jerk, oldPos, oldVel, oldAcc, oldJerk, dt);
+}
+
+const double n = 1.0;
+const double kappa = 1.0;
+const double n_z = 1.0;
+
+// Call this after all others so the accels are completed by the time this is called.
+void hillsForce(const vect3 &pos, const vect3 &vel, vect3 &acc, vect3 &jerk) {
+  acc.x += 2.0 * n * vel.y - (kappa * kappa - 4.0 * n * n) * pos.x;
+  acc.y += -2.0 * n * vel.x;
+  acc.z += -n_z * n_z * pos.z;
+  jerk.x += 2.0 * n * acc.y - (kappa * kappa - 4.0 * n * n) * vel.x;
+  jerk.y += -2.0 * n * acc.x;
+  jerk.z += -n_z * n_z * vel.z;
 }
 
 int main(int argc, char **argv) {
