@@ -4,6 +4,9 @@ FLAGS=-Wall -pedantic -std=c++11 -Ofast -fopenmp -I/home/mlewis/workspace/RingsV
 RingsSim: RingsSim.cpp
 	g++ $(FLAGS) -o RingsSim RingsSim.cpp
 
+CircularOrbitMain: CircularOrbitMain.cpp
+	g++ $(FLAGS) -o CircularOrbitMain CircularOrbitMain.cpp
+
 MPIRingsSim: MPIRingsSim.cpp
 	mpiCC $(FLAGS) -o MPIRingsSim MPIRingsSim.cpp
 #	/users/mlewis/openmpi/bin/mpiCC $(FLAGS) -o MPIRingsSim MPIRingsSim.cpp
