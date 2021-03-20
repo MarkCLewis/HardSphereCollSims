@@ -7,6 +7,9 @@ RingsSim: RingsSim.cpp
 CircularOrbitMain: CircularOrbitMain.cpp
 	g++ $(FLAGS) -o CircularOrbitMain CircularOrbitMain.cpp
 
+GalacticOrbitMain: GalacticOrbitMain.cpp
+	g++ $(FLAGS) -o GalacticOrbitMain GalacticOrbitMain.cpp
+
 MPIRingsSim: MPIRingsSim.cpp
 	mpiCC $(FLAGS) -o MPIRingsSim MPIRingsSim.cpp
 #	/users/mlewis/openmpi/bin/mpiCC $(FLAGS) -o MPIRingsSim MPIRingsSim.cpp
