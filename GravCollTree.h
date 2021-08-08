@@ -910,11 +910,14 @@ class GravCollTree {
 							pop.setvx(pi,pop.getvx(pi)+dx*mag);
 							pop.setvy(pi,pop.getvy(pi)+dy*mag);
 							pop.setvz(pi,pop.getvz(pi)+dz*mag);
-						} else if (dist < (pop.getRadius(pi) + pop.getRadius(oi))*0.99 && offsetX == 0.0 && offsetY == 0.0) {
+						}
+#ifndef SUPPRESS_OUT
+						else if (dist < (pop.getRadius(pi) + pop.getRadius(oi))*0.99 && offsetX == 0.0 && offsetY == 0.0) {
 							// Note that this can happen due to the initial conditions or the application of boundary conditions. 
 							// It should not happen to more than a few particles per step after the first few steps.
 							printf("Warning: Overlapping Gravity without offsets %d %d %e %e %e %f\n", pi.i, oi.i, dist, pop.getRadius(pi), pop.getRadius(oi), dist/(pop.getRadius(pi) + pop.getRadius(oi)));
 						}
+#endif
 					}
 #ifdef PARALLEL
 					else if(oi<0) {

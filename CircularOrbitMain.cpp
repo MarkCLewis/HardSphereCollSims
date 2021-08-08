@@ -21,11 +21,17 @@
 #include "DoubleOutput.h"
 #include "GravCollTree.h"
 
+class NoOutput {
+public:
+        template<class Population>
+        void output(Population &pop) {}
+};
+
 int main(int argc,char **argv) {
-	int numBodies = 100;
-	double stopTime = 6.28 * 12;
+	int numBodies = (argc<2)?100:atoi(argv[1]);
+	double stopTime = 6.28;
 	int outputInterval=20;
-	double dt=(argc<2)?1e-3:(atof(argv[1]));
+	double dt=(argc<3)?1e-3:(atof(argv[2]));
   double velcmPerS = 1.0; // There shouldn't be collisions in this test, so this shouldn't matter.
 
 /***** Boundary Setup ********/
@@ -43,8 +49,10 @@ int main(int argc,char **argv) {
 
 
 /***** Output Setup ********/
-	typedef BinaryDumpOutput<BasicCartCoords> Output;
-	Output output(outputInterval);
+//	typedef BinaryDumpOutput<BasicCartCoords> Output;
+//	Output output(outputInterval);
+	typedef NoOutput Output;
+	Output output;
 	
 /***** Population Setup ********/
   StandardMass mf(1.5e8, 1.41, 2e30);

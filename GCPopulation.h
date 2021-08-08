@@ -512,9 +512,11 @@ class GCPopulation {
 			// Check if this is a bad collision.
 			gn=dx*px+dy*py+dz*pz;
 			if(gn<0.0) {
+#ifndef SUPPRESS_OUT
 				double magp=sqrt(px*px+py*py+pz*pz);
 				if(gn/magp<-1e-3)
 					printf("%d [%d,%d] at %e with %e %e: Thrown out for wrong direction: gn=%e\n",omp_get_thread_num(),p1.i,p2.i,t,time[p1.i],time[p2.i],gn/magp);
+#endif
 		//		printf("%e: %e %e  - %e %e %e\n",dmag,radius[p1],radius[p2],dx,dy,dz);
 		//		printf("%e %e %e\n",px,py,pz);
 				time[p1.i]=t;
