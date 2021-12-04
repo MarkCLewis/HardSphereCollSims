@@ -2,11 +2,18 @@
 // gravity.  Note that if this is used for gravity and collisions in a
 // DoubleForce, the gravity needs to come first.
 
+#ifndef GRAV_COLL_TREE
+#define GRAV_COLL_TREE
+
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
 #include <tuple>
 #include <functional>
+
+#include "ParticleIndex.h"
+#include "ShortRangeForces.h"
+#include "AccelVect.h"
 
 //#define LOCK_GRAPH
 
@@ -123,16 +130,16 @@ struct GravRecurseInfo {
 	double offsetX,offsetY;
 };
 
-struct AccelVect {
-	AccelVect():ax(0.0),ay(0.0),az(0.0) {}
-	double ax,ay,az;
-};
-
-template<class Boundary>
+template<class Boundary, class ShortRangeForce = ShortRangeGravityOnly>
 class GravCollTree {
 	public:
 #ifndef PARALLEL
-		GravCollTree(double t,Boundary &b,double md=0):acc(omp_get_max_threads()),theta(t),bounds(b),minDist(md) {
+		GravCollTree(double t,Boundary &b, ShortRangeForce srf = ShortRangeGravityOnly(),double md=0):theta(t),bounds(b),shortRangeForce(srf),minDist(md) {
+#ifdef PFORCE
+			acc.resize(omp_get_max_threads());
+#else
+			acc.resize(1);
+#endif
 			maxDepth = (int) (log(omp_get_max_threads())/log(2) + 2);
 			omp_init_lock(&lock);
 #ifdef REORDER
@@ -140,7 +147,12 @@ class GravCollTree {
 #endif
 		}
 #else
-		GravCollTree(double t,ProcessorCommunication &procComm,Boundary &b,double md=0):acc(omp_get_max_threads()),theta(t),pc(procComm),bounds(b),minDist(md),boundsBuffer(6),sizeBuffer(1) {
+		GravCollTree(double t,ProcessorCommunication &procComm,Boundary &b, ShortRangeForce srf = ShortRangeGravityOnly(),double md=0):theta(t),pc(procComm),bounds(b),shortRangeForce(srf),minDist(md),boundsBuffer(6),sizeBuffer(1) {
+#ifdef PFORCE
+			acc.resize(omp_get_max_threads());
+#else
+			acc.resize(1);
+#endif
 			maxDepth = (int) (log(omp_get_max_threads())/log(2) + 2);
 			omp_init_lock(&lock);
 		}
@@ -152,8 +164,16 @@ class GravCollTree {
 
 		template<class Population>
 		void applyForce(Population &pop) {
-			for(unsigned int i=0; i<acc.size(); ++i) {
+			const int nt=acc.size();
+			const int nb=pop.getNumBodies();
+			#pragma omp parallel for
+			for(int i=0; i<nt; ++i) {
 				acc[i].resize(pop.getNumBodies());
+				for(int j=0; j<nb; ++j) {
+					acc[i][j].ax=0.0;
+					acc[i][j].ay=0.0;
+					acc[i][j].az=0.0;
+				}
 			}
 			//printf("Do tree gravity.\n");
 			buildReal(pop);
@@ -182,17 +202,7 @@ class GravCollTree {
 #ifdef PARALLEL
 			communicateTrees(pop);
 #endif
-			const int nb=pop.getNumBodies();
 #ifdef PFORCE
-			const int nt=acc.size();
-			#pragma omp parallel for
-			for(int i=0; i<nt; ++i) {
-				for(int j=0; j<nb; ++j) {
-					acc[i][j].ax=0.0;
-					acc[i][j].ay=0.0;
-					acc[i][j].az=0.0;
-				}
-			}
 			vector<GravRecurseInfo> stack;
 			doPPForce(0,0,pop,0,0,stack,0,acc[0]);
 #ifdef AZIMUTHAL_MIRRORS
@@ -229,16 +239,6 @@ class GravCollTree {
 			for (int i = 0; i < ssize; ++i) {
 				doPPForce(stack[i].puller,stack[i].pulled,pop,stack[i].offsetX,stack[i].offsetY,stack,-1000000,acc[omp_get_thread_num()]);
 			}
-			#pragma omp parallel for
-			for(int jj=0; jj<nb; ++jj) {
-				ParticleIndex pj = {jj};
-				for(unsigned int i=0; i<acc.size(); ++i) {
-					pop.setvx(pj,pop.getvx(pj)+acc[i][pj.i].ax);
-					pop.setvy(pj,pop.getvy(pj)+acc[i][pj.i].ay);
-					pop.setvz(pj,pop.getvz(pj)+acc[i][pj.i].az);
-				}
-				pop.adjustAfterForce(pj);
-			}
 #else // for PFORCE
 #ifdef DEBUG
 			verifyOverlaps(pop);
@@ -246,19 +246,19 @@ class GravCollTree {
 			#pragma omp parallel for schedule(dynamic,100)
 			for(int ii=0; ii<nb; ++ii) {
 				ParticleIndex pi = {ii};
-				doForce(0,pop,pi,0,0);
+				doForce(0, pop, pi, 0, 0, acc[0]);
 #ifdef AZIMUTHAL_MIRRORS
 				for(int j=1; j<=AZIMUTHAL_MIRRORS; ++j) {
-	                doForce(0,pop,pi,0,cellWidth*j);
-                	doForce(0,pop,pi,0,-cellWidth*j);
+	                doForce(0,pop,pi,0,cellWidth*j, acc[0]);
+                	doForce(0,pop,pi,0,-cellWidth*j, acc[0]);
 #ifdef FULL_MIRRORS
 					for(int k=1; k<=FULL_MIRRORS; ++k) {
 						double totalShear=k*shearOffset;
 						while(totalShear<bounds.getMinY()) totalShear+=cellWidth;
-	                	doForce(0,pop,pi,cellHeight*k,totalShear+cellWidth*j);
-	                	doForce(0,pop,pi,cellHeight*k,totalShear-cellWidth*j);
-	                	doForce(0,pop,pi,-cellHeight*k,-totalShear+cellWidth*j);
-	                	doForce(0,pop,pi,-cellHeight*k,-totalShear-cellWidth*j);
+	                	doForce(0,pop,pi,cellHeight*k,totalShear+cellWidth*j, acc[0]);
+	                	doForce(0,pop,pi,cellHeight*k,totalShear-cellWidth*j, acc[0]);
+	                	doForce(0,pop,pi,-cellHeight*k,-totalShear+cellWidth*j, acc[0]);
+	                	doForce(0,pop,pi,-cellHeight*k,-totalShear-cellWidth*j, acc[0]);
 					}
 #endif
 				}
@@ -266,19 +266,35 @@ class GravCollTree {
 				for(int k=1; k<=FULL_MIRRORS; ++k) {
 					double totalShear=k*shearOffset;
 					while(totalShear<bounds.getMinY()) totalShear+=cellWidth;
-                	doForce(0,pop,pi,cellHeight*k,totalShear);
-                	doForce(0,pop,pi,-cellHeight*k,-totalShear);
+                	doForce(0,pop,pi,cellHeight*k,totalShear, acc[0]);
+                	doForce(0,pop,pi,-cellHeight*k,-totalShear, acc[0]);
 				}
 #endif
 #endif
 #ifdef PARALLEL
 				for(unsigned int j=0; j<receivedTrees.size(); ++j) {
-					doForce(receivedTrees[j],pop,pi,0,0);
+					doForce(receivedTrees[j],pop,pi,0,0, acc[0]);
 				}
 #endif
-				pop.adjustAfterForce(pi);
 			}
 #endif
+			#pragma omp parallel for
+			for(int jj=0; jj<nb; ++jj) {
+				ParticleIndex pj = {jj};
+				double ax = 0.0;
+				double ay = 0.0;
+				double az = 0.0;
+				for(unsigned int i=0; i<acc.size(); ++i) {
+					ax += acc[i][pj.i].ax;
+					ay += acc[i][pj.i].ay;
+					az += acc[i][pj.i].az;
+				}
+				if (jj == 0) printf("Acc = %e %e %e\n", ax, ay, az);
+				pop.setvx(pj,pop.getvx(pj)+pop.getTimeStep() * ax);
+				pop.setvy(pj,pop.getvy(pj)+pop.getTimeStep() * ay);
+				pop.setvz(pj,pop.getvz(pj)+pop.getTimeStep() * az);
+				pop.adjustAfterForce(pj);
+			}
 		}
 
 		template<class Population>
@@ -890,7 +906,7 @@ class GravCollTree {
 		}
 
 		template<class Population>
-		void doForce(int n,Population &pop,ParticleIndex pi,double offsetX,double offsetY) {
+		void doForce(int n, Population &pop, ParticleIndex pi, double offsetX, double offsetY, vector<AccelVect> &acc) {
 			if(pool[n].mass<=0.0) return;
 			int num=pool[n].numParts;
 			if(num>0) {
@@ -901,23 +917,11 @@ class GravCollTree {
 						double dy=pop.gety(oi)+offsetY-pop.gety(pi);
 						double dz=pop.getz(oi)-pop.getz(pi);
 						double dist=sqrt(dx*dx+dy*dy+dz*dz);
-						if (dist > pop.getRadius(pi) + pop.getRadius(oi)) {
 #ifdef GRAV_STATS
-							IterCounter::recordSqr();
-							IterCounter::recordSqrt();
+						IterCounter::recordSqr();
+						IterCounter::recordSqrt();
 #endif
-							double mag=pop.getTimeStep()*pop.getMass(oi)/(dist*dist*dist);
-							pop.setvx(pi,pop.getvx(pi)+dx*mag);
-							pop.setvy(pi,pop.getvy(pi)+dy*mag);
-							pop.setvz(pi,pop.getvz(pi)+dz*mag);
-						}
-#ifndef SUPPRESS_OUT
-						else if (dist < (pop.getRadius(pi) + pop.getRadius(oi))*0.99 && offsetX == 0.0 && offsetY == 0.0) {
-							// Note that this can happen due to the initial conditions or the application of boundary conditions. 
-							// It should not happen to more than a few particles per step after the first few steps.
-							printf("Warning: Overlapping Gravity without offsets %d %d %e %e %e %f\n", pi.i, oi.i, dist, pop.getRadius(pi), pop.getRadius(oi), dist/(pop.getRadius(pi) + pop.getRadius(oi)));
-						}
-#endif
+						acc[pi.i] += shortRangeForce.applyForce(pop, pi, oi, dx, dy, dz, dist, offsetX, offsetY);
 					}
 #ifdef PARALLEL
 					else if(oi<0) {
@@ -931,10 +935,10 @@ class GravCollTree {
 						IterCounter::recordSqrt();
 #endif
 						if(dist>2*pop.getRadius(pi)) {
-							double mag=pop.getTimeStep()*remoteParticles[-oi.i].mass/(dist*dist*dist);
-							pop.setvx(pi,pop.getvx(pi)+dx*mag);
-							pop.setvy(pi,pop.getvy(pi)+dy*mag);
-							pop.setvz(pi,pop.getvz(pi)+dz*mag);
+							double mag=remoteParticles[-oi.i].mass/(dist*dist*dist);
+							acc[pi.i].ax+=dx*mag;
+							acc[pi.i].ay+=dy*mag;
+							acc[pi.i].az+=dz*mag;
 						}
 					}
 #endif
@@ -952,14 +956,14 @@ class GravCollTree {
 #ifdef GRAV_STATS
 					IterCounter::recordSqrt();
 #endif
-					double mag=pop.getTimeStep()*pool[n].mass/(dist*dsqr);
-					pop.setvx(pi,pop.getvx(pi)+dx*mag);
-					pop.setvy(pi,pop.getvy(pi)+dy*mag);
-					pop.setvz(pi,pop.getvz(pi)+dz*mag);
+					double mag = pool[n].mass/(dist*dsqr);
+					acc[pi.i].ax += dx*mag;
+					acc[pi.i].ay += dy*mag;
+					acc[pi.i].az += dz*mag;
 				} else {
 					if(dsqr+pool[n].size*pool[n].size>minDist*minDist) {
-						doForce(pool[n].firstChild,pop,pi,offsetX,offsetY);
-						doForce(pool[n].firstChild+1,pop,pi,offsetX,offsetY);
+						doForce(pool[n].firstChild,pop,pi,offsetX,offsetY, acc);
+						doForce(pool[n].firstChild+1,pop,pi,offsetX,offsetY, acc);
 					}
 				}
 			}
@@ -1046,12 +1050,12 @@ class GravCollTree {
 				IterCounter::recordSqr();
 				IterCounter::recordSqrt();
 	#endif
-								double mag=pop.getTimeStep()*pop.getMass(oi)/(dist*dist*dist);
+								double mag=pop.getMass(oi)/(dist*dist*dist);
 								acc[pi.i].ax+=dx*mag;
 								acc[pi.i].ay+=dy*mag;
 								acc[pi.i].az+=dz*mag;
 								if(pullerNode==pulledNode) {
-									mag=-pop.getTimeStep()*pop.getMass(pi)/(dist*dist*dist);
+									mag=-pop.getMass(pi)/(dist*dist*dist);
 									acc[oi.i].ax+=dx*mag;
 									acc[oi.i].ay+=dy*mag;
 									acc[oi.i].az+=dz*mag;
@@ -1067,7 +1071,7 @@ class GravCollTree {
 								double dz=remoteParticles[-oi.i].z-pop.getz(pi);
 								double dist=sqrt(dx*dx+dy*dy+dz*dz);
 								if(dist>2*pop.getRadius(pi)) {
-									double mag=pop.getTimeStep()*remoteParticles[-oi.i].mass/(dist*dist*dist);
+									double mag=remoteParticles[-oi.i].mass/(dist*dist*dist);
 									acc[pi.i].ax+=dx*mag;
 									acc[pi.i].ay+=dy*mag;
 									acc[pi.i].az+=dz*mag;
@@ -1089,7 +1093,7 @@ class GravCollTree {
 			IterCounter::recordSqr();
 			IterCounter::recordSqrt();
 #endif
-						double mag=pop.getTimeStep()*pool[pullerNode].mass/(dist*dsqr);
+						double mag=pool[pullerNode].mass/(dist*dsqr);
 						acc[pi.i].ax+=dx*mag;
 						acc[pi.i].ay+=dy*mag;
 						acc[pi.i].az+=dz*mag;
@@ -1434,6 +1438,7 @@ class GravCollTree {
 		int firstFree;
 		double theta;
 		Boundary &bounds;  // boundary conditions
+		ShortRangeForce shortRangeForce;
 		double minDist;
 		omp_lock_t lock;
 #ifdef REORDER
@@ -1449,3 +1454,4 @@ class GravCollTree {
 #endif
 };
 
+#endif

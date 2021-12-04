@@ -19,10 +19,11 @@ class TextOutput {
 		void output(Population &pop) {
 			if(cnt%interval==0) {
 			    for(int i=0; i<pop.getNumBodies(); i++) {
+						ParticleIndex pi{i};
 #ifndef SPIN
-					fprintf(fout,"%e %e %e %e %e %e %e %e\n",cnt*pop.getTimeStep(),pop.getx(i),pop.gety(i),pop.getz(i),pop.getvx(i),pop.getvy(i),pop.getvz(i),pop.getRadius(i));
+						fprintf(fout,"%e %e %e %e %e %e %e %e\n",cnt*pop.getTimeStep(),pop.getx(pi),pop.gety(pi),pop.getz(pi),pop.getvx(pi),pop.getvy(pi),pop.getvz(pi),pop.getRadius(pi));
 #else
-					fprintf(fout,"%e %e %e %e %e %e %e %e %e %e %e\n",cnt*pop.getTimeStep(),pop.getx(i),pop.gety(i),pop.getz(i),pop.getvx(i),pop.getvy(i),pop.getvz(i),pop.getRadius(i),pop.getwx(i),pop.getwy(i),pop.getwz(i));
+						fprintf(fout,"%e %e %e %e %e %e %e %e %e %e %e\n",cnt*pop.getTimeStep(),pop.getx(pi),pop.gety(pi),pop.getz(pi),pop.getvx(pi),pop.getvy(pi),pop.getvz(pi),pop.getRadius(pi),pop.getwx(pi),pop.getwy(pi),pop.getwz(pi));
 #endif
 			    }
 				fflush(fout);

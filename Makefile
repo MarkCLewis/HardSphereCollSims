@@ -7,6 +7,9 @@ RingsSim: RingsSim.cpp
 CircularOrbitMain: CircularOrbitMain.cpp
 	g++ $(FLAGS) -o CircularOrbitMain CircularOrbitMain.cpp
 
+SoftParticleTestMain: SoftParticleTestMain.cpp
+	g++ $(FLAGS) -o SoftParticleTestMain SoftParticleTestMain.cpp
+
 GalacticOrbitMain: GalacticOrbitMain.cpp
 	g++ $(FLAGS) -o GalacticOrbitMain GalacticOrbitMain.cpp
 

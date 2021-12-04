@@ -1,6 +1,6 @@
 // CircularOrbitMain.cpp
-// This is the main file for testing circular orbits in a solar-system type of
-// setup. Can be used for speed tests and limited validity of gravity trees.
+// This is the main file for testing a galactic-style setup. 
+// Can be used for speed tests and limited validity of gravity trees.
 
 #include<string>
 #include<omp.h>

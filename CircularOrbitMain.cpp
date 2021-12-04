@@ -10,13 +10,9 @@
 
 #include "System.h"
 #include "BasicPopulation.h"
-#include "TreeCollisionForcing.h"
-// #include "CollisionForcing.h"
 #include "BoundaryConditions.h"
-#include "VariableGridCollisionHash.h"
-#include "FixedGridCollisionHash.h"
 #include "Distributions.h"
-#include "BinaryDumpOutput.h"
+#include "TextOutput.h"
 #include "DoubleForce.h"
 #include "DoubleOutput.h"
 #include "GravCollTree.h"
@@ -30,7 +26,6 @@ public:
 int main(int argc,char **argv) {
 	int numBodies = (argc<2)?100:atoi(argv[1]);
 	double stopTime = 6.28;
-	int outputInterval=20;
 	double dt=(argc<3)?1e-3:(atof(argv[2]));
   double velcmPerS = 1.0; // There shouldn't be collisions in this test, so this shouldn't matter.
 
@@ -39,20 +34,15 @@ int main(int argc,char **argv) {
 	Boundary bc;
 
 /***** Forcing Setup ********/
-  // typedef TreeCollisionForcing<GravCollTree<Boundary> > CollForcing;
-  // typedef DoubleForce<GravCollTree<Boundary>,CollForcing> Forcing;
-
 	typedef GravCollTree<Boundary> Forcing;
   GravCollTree<Boundary> force(0.3,bc);
-  // CollForcing collForce(gt);
-  // Forcing force(gt,collForce);
-
 
 /***** Output Setup ********/
-//	typedef BinaryDumpOutput<BasicCartCoords> Output;
-//	Output output(outputInterval);
 	typedef NoOutput Output;
 	Output output;
+	// typedef TextOutput Output;
+	// Output output(0.1);
+
 	
 /***** Population Setup ********/
   StandardMass mf(1.5e8, 1.41, 2e30);
@@ -66,6 +56,12 @@ int main(int argc,char **argv) {
 		double v = sqrt(1.0 / d);
 		pop.addSingleParticle(d, 0.0, 0.0, 0.0, v, 0.0, 1e-14);
 		pop.addSingleParticle(-d, 0.0, 0.0, 0.0, -v, 0.0, 1e-14);
+	}
+	printf("Central mass = %f\n", pop.getMass(ParticleIndex{0}));
+	printf("Particle locations:\n"); 
+	for (int i = 0; i < numBodies; ++i) {
+		ParticleIndex pi{i};
+		printf("%d %e %e %e\n", i, pop.getx(pi), pop.gety(pi), pop.getz(pi));
 	}
 	
 /***** Do Simulation ********/
@@ -82,7 +78,11 @@ int main(int argc,char **argv) {
 	double end = omp_get_wtime();
 
 	printf("Finished in %g seconds.\n", end-start);
-	
+	printf("Particle locations:\n");
+	for (int i = 0; i < numBodies; ++i) {
+		ParticleIndex pi{i};
+		printf("%d %e %e %e\n", i, pop.getx(pi), pop.gety(pi), pop.getz(pi));
+	}
 
 	return 0;
 }

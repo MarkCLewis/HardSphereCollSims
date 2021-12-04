@@ -16,7 +16,7 @@ template<class BoundaryCondition,class OutputMethod,class CoefRest = En_Bridges_
 class BasicPopulation {
 	public:
 		BasicPopulation(BoundaryCondition &bc,OutputMethod &om,double timeStep, double velConv, MassFunc mf):
-				bounds(bc),out(om),dt(timeStep),velTocms(velConv),massFunc(mf) {
+				bounds(bc),out(om),dt(timeStep),velTocms(velConv),massFunc(mf),checkCnt(0) {
 			numBodies=0;
 			numReal=0;
 			maxRadius=0.0;

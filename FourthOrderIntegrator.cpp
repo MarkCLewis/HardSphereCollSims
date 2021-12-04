@@ -36,7 +36,7 @@ using std::vector;
 inline double sigmoid(double x) { 
   return 1.0/(1.0+exp(-x)); 
 }
-inline double sigmoidP(double x) = {
+inline double sigmoidP(double x) {
   if (x > 100.0) return 0.0;
   double denom = exp(x)+1.0;
   return exp(x)/(denom * denom); 
