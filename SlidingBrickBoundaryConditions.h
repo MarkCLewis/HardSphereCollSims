@@ -31,7 +31,9 @@ class SlidingBrick {
 
 		template<class Population>
 		void apply(Population &pop) {
-			for(ParticleIndex pi={0}; pi.i<pop.getNumBodies(); ++pi.i) {
+			#pragma omp parallel for
+			for(int ii = 0; ii<pop.getNumBodies(); ++ii) {
+				ParticleIndex pi={ii};
 				while(pop.getx(pi)<minx) {
 					pop.setx(pi,pop.getx(pi)+(maxx-minx));
 					double newy=pop.gety(pi)+2*shearOffset;

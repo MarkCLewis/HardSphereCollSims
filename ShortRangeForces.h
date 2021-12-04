@@ -53,29 +53,25 @@ class ShortRangeGravitySpringDiscontinuous {
       double mag = 0.0;
       double overlap = dist - (pop.getRadius(pi) + pop.getRadius(oi));
       if (overlap <= 0.0) {
-        if (pi.i == 0) printf("%d and %d are overlapping by %e\n", pi.i, oi.i, overlap);
         double mp = pop.getMass(pi);
         double mo = pop.getMass(oi);
         double mu = (mp * mo) / (mp + mo);
         double dr = penetrationDepth * (pop.getRadius(pi) + pop.getRadius(oi)) * 0.5;
+        double v_i = (pop.getRadius(pi) + pop.getRadius(oi)) * 0.5;  // Assume that impact velocity scales as particle size.
+        double k = mu * (v_i *v_i / (dr * dr)) * kconst;
+        double c = 2 * logeps * sqrt(k * mu / psqrlogesqr);
         double vx = pop.getvx(pi) - pop.getvx(oi);
         double vy = pop.getvy(pi) - pop.getvy(oi);
         double vz = pop.getvz(pi) - pop.getvz(oi);
-        double relVel = sqrt(vx * vx + vy * vy + vz * vz);
-        double v_i = std::max(relVel, (pop.getRadius(pi) + pop.getRadius(oi)) * 0.5);  // Assume that impact velocity scales as particle size.
-        if (pi.i == 0) printf("mu = %e, vi = %e, dr = %e\n", mu,v_i, dr);
-        double k = mu * (v_i *v_i / (dr * dr)) * kconst;
-        double c = 2 * logeps * sqrt(k * mu / psqrlogesqr);
         double vxdx = vx * dx;
         double vydy = vy * dy;
         double vzdz = vz * dz;
         double vnorm = (vxdx + vydy + vzdz) / dist;
-        mag = (k * overlap + c * vnorm) / mp;
-        if (pi.i == 0) printf("Coll mag %d %d = %e, k = %e, c = %e, v = %e, mp = %e\n", pi.i, oi.i, mag, k, c, vnorm, mp);
+        mag = (k * std::max(overlap, -penetrationDepth * (pop.getRadius(pi) + pop.getRadius(oi))) + c * vnorm) / mp;
         return AccelVect(dx * mag / dist, dy * mag / dist, dz * mag / dist);
       } else {
         mag = pop.getMass(oi) / (dist * dist * dist);
-        return AccelVect(0.0, 0.0, 0.0); //dx * mag, dy * mag, dz * mag);
+        return AccelVect(dx * mag, dy * mag, dz * mag);
       }      
     }
 

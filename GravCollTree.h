@@ -289,7 +289,6 @@ class GravCollTree {
 					ay += acc[i][pj.i].ay;
 					az += acc[i][pj.i].az;
 				}
-				if (jj == 0) printf("Acc = %e %e %e\n", ax, ay, az);
 				pop.setvx(pj,pop.getvx(pj)+pop.getTimeStep() * ax);
 				pop.setvy(pj,pop.getvy(pj)+pop.getTimeStep() * ay);
 				pop.setvz(pj,pop.getvz(pj)+pop.getTimeStep() * az);
