@@ -44,7 +44,6 @@ class ShortRangeGravitySpringDiscontinuous {
       logeps = log(epsilon);
       psqrlogesqr = logeps * logeps + 3.14159 * 3.14159;
       kconst = epsilon * (psqrlogesqr) / (3.14159 * 3.14159);
-      printf("Constants %e %e %e\n", logeps, psqrlogesqr, kconst);
     }
 
     template<class Population>
@@ -67,7 +66,13 @@ class ShortRangeGravitySpringDiscontinuous {
         double vydy = vy * dy;
         double vzdz = vz * dz;
         double vnorm = (vxdx + vydy + vzdz) / dist;
-        mag = (k * std::max(overlap, -penetrationDepth * (pop.getRadius(pi) + pop.getRadius(oi))) + c * vnorm) / mp;
+#ifndef SUPPRESS_OUT        
+        if (overlap < -20 * dr) {
+          printf("Warning: large soft-sphere overlap: %d %d %3.2f%% %e %e\n", pi.i, oi.i, -overlap / (pop.getRadius(pi) + pop.getRadius(oi)) * 100.0, pop.getRadius(pi), pop.getRadius(oi));
+        }
+#endif
+        mag = (k * overlap + c * vnorm) / mp;
+
         return AccelVect(dx * mag / dist, dy * mag / dist, dz * mag / dist);
       } else {
         mag = pop.getMass(oi) / (dist * dist * dist);
