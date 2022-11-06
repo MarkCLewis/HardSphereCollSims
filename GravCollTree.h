@@ -896,7 +896,7 @@ class GravCollTree {
 			} else {
 				printf("Particles in %d\n",node);
 				for(int i=0; i<pool[node].numParts; ++i) {
-					int p=pool[node].parts[i];
+					int p=pool[node].parts[i].i;
 					printf("%d %e %e %e %e %e %e\n",p,pop.get(p,0),pop.get(p,1)
 						,pop.get(p,2),pop.get(p,3),pop.get(p,4),pop.get(p,5));
 				}
@@ -1112,7 +1112,7 @@ class GravCollTree {
 			} else {
 				int num=pool[n].numParts;
 				for(int i=0; i<num; ++i) {
-					int orig=pool[n].parts[i];
+					int orig=pool[n].parts[i].i;
 					if(nextPos!=map[orig]) {
 						pop.swapParticles(nextPos,map[orig]);
 						std::swap(location[nextPos],location[map[orig]]);
@@ -1120,7 +1120,7 @@ class GravCollTree {
 						std::swap(invmap[nextPos],invmap[map[orig]]);
 						std::swap(map[tmp],map[orig]);
 					}
-					pool[n].parts[i]=nextPos;
+					pool[n].parts[i].i=nextPos;
 					nextPos++;
 				}
 			}

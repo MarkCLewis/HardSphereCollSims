@@ -43,6 +43,8 @@ int main(int argc,char **argv) {
 	// typedef TextOutput Output;
 	// Output output(0.1);
 
+	omp_set_num_threads(1);
+
 	
 /***** Population Setup ********/
   StandardMass mf(1.5e8, 1.41, 2e30);
@@ -54,8 +56,8 @@ int main(int argc,char **argv) {
 	for (int i = 0; i < numBodies; ++i) {
 		double d = 0.1 + i * 5.0 / numBodies;
 		double v = sqrt(1.0 / d);
-		pop.addSingleParticle(d, 0.0, 0.0, 0.0, v, 0.0, 1e-14);
-		pop.addSingleParticle(-d, 0.0, 0.0, 0.0, -v, 0.0, 1e-14);
+		double theta = drand48() * 6.28;
+		pop.addSingleParticle(d * cos(theta), d * sin(theta), 0.0, -v * sin(theta), v * cos(theta), 0.0, 1e-14);
 	}
 	printf("Central mass = %f\n", pop.getMass(ParticleIndex{0}));
 	printf("Particle locations:\n"); 
@@ -78,11 +80,11 @@ int main(int argc,char **argv) {
 	double end = omp_get_wtime();
 
 	printf("Finished in %g seconds.\n", end-start);
-	printf("Particle locations:\n");
-	for (int i = 0; i < numBodies; ++i) {
-		ParticleIndex pi{i};
-		printf("%d %e %e %e\n", i, pop.getx(pi), pop.gety(pi), pop.getz(pi));
-	}
+	// printf("Particle locations:\n");
+	// for (int i = 0; i < numBodies; ++i) {
+	// 	ParticleIndex pi{i};
+	// 	printf("%d %e %e %e\n", i, pop.getx(pi), pop.gety(pi), pop.getz(pi));
+	// }
 
 	return 0;
 }
