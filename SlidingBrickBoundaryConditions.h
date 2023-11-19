@@ -74,6 +74,24 @@ class SlidingBrick {
 			return (maxx-minx)*(maxy-miny);
 		}
 
+		template <typename T> int sgn(T val) {
+    	return (T(0) < val) - (val < T(0));
+		}
+
+		template<class Population>
+		void offset(Population &pop, ParticleIndex pi, double offsetX, double offsetY, CartCoords &cc) {
+			cc = pop.getCart()[pi.i];
+			cc.y += offsetY;
+			if (offsetX != 0.0) {
+				// The mirror code alread does these offsets.
+				// cc.y -= sgn(offsetX) * shearOffset;
+				// if(cc.y>maxy) cc.y=(maxy-miny);
+				// else if(cc.y<miny) cc.y+=(maxy-miny);
+				cc.vy -= 2.0*GCCoords::A0*offsetX;
+				cc.x += offsetX;
+			}
+		}
+
 		double getMinX() { return minx; }
 		double getMaxX() { return maxx; }
 		double getMinY() { return miny; }

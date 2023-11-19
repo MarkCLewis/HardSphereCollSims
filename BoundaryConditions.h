@@ -12,9 +12,12 @@
 #define BOUNDARY_CONDITIONS
 
 #include <vector>
+#include <tuple>
 //#include "GCPopulation.h"
 #include "ProcessorCommunication.h"
 #include "Coordinates.h"
+
+using std::tuple;
 
 class OpenBounds {
 	public:
@@ -127,6 +130,16 @@ class SlidingBrick {
 			return (maxx-minx)*(maxy-miny);
 		}
 
+		template<class Population>
+		void offset(Population &pop, ParticleIndex pi, double offsetX, double offsetY, CartCoords &cc) {
+			cc = pop.getCart()[pi.i];
+			cc.y += offsetY;
+			if (offsetX != 0.0) {
+				cc.vy -= 2.0*GCCoords::A0*offsetX;
+				cc.x += offsetX;
+			}
+		}
+
 		double getMinX() { return minx; }
 		double getMaxX() { return maxx; }
 		double getMinY() { return miny; }
@@ -172,6 +185,14 @@ class PeriodicWithPhiShift {
 
 		double getArea() {
 			return (maxx-minx)*(maxy-miny);
+		}
+
+		template<class Population>
+		void offset(Population &pop, ParticleIndex pi, double offsetX, double offsetY, CartCoords &cc) {
+			GCType gc = pop.getGC()[pi.i];
+			gc.Y += offsetY;
+			gc.phi += GCType::phidot(pop.getX(pi))*offsetY/GCType::Ydot(pop.getX(pi));
+			cc.set(gc);
 		}
 
 		double getMinX() { return minx; }

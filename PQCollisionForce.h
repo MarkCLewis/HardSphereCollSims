@@ -1,16 +1,5 @@
-/**
- * @file ShortRangeForces.cpp
- * @author mlewis@trinity.edu
- * @brief This file holds the classes that perform short-range forces.
- * @version 0.1
- * @date 2021-11-30
- * 
- * @copyright Copyright (c) 2021
- * 
- */
-
-#ifndef SHORT_RANGE_FORCES
-#define SHORT_RANGE_FORCES
+#ifndef PQCollisionForce
+#define PQCollisionForce
 
 #include<vector>
 #include<math.h>
@@ -20,28 +9,16 @@
 
 using std::vector;
 
-class ShortRangeGravityOnly {
-  public:
-    template<class Population>
-    AccelVect applyForce(const Population &pop, ParticleIndex pi, ParticleIndex oi, double dx, double dy, double dz, double dist, double offsetX, double offsetY) {
-      if (dist > pop.getRadius(pi) + pop.getRadius(oi)) {
-        double mag = pop.getMass(oi) / (dist * dist * dist);
-        return AccelVect(dx * mag, dy * mag, dz * mag);
-      }
-#ifndef SUPPRESS_OUT
-      else if (dist < (pop.getRadius(pi) + pop.getRadius(oi))*0.99 && offsetX == 0.0 && offsetY == 0.0) {
-        // Note that this can happen due to the initial conditions or the application of boundary conditions. 
-        // It should not happen to more than a few particles per step after the first few steps.
-        printf("Warning: Overlapping Gravity without offsets %d %d %e %e %e %f\n", pi.i, oi.i, dist, pop.getRadius(pi), pop.getRadius(oi), dist/(pop.getRadius(pi) + pop.getRadius(oi)));
-      }
-#endif
-      return AccelVect(0.0, 0.0, 0.0);
-    }
+struct PQForceEvent {
+  double time;
+  ParticleIndex p1;
+  ParticleIndex p2;
 };
 
-class ShortRangeGravitySpringDiscontinuous {
+class ShortRangeGravitySpringDiscontinuousWithPQ {
   public:
-    ShortRangeGravitySpringDiscontinuous(double eps=0.5, double pdepth=0.02): 
+    ShortRangeGravitySpringDiscontinuousWithPQ(vector<PQForceEvent> &vect, double eps=0.5, double pdepth=0.02): 
+      pq(vect),
       epsilon(eps), 
       penetrationDepth(pdepth), 
       logeps(log(epsilon)), 
@@ -88,6 +65,11 @@ class ShortRangeGravitySpringDiscontinuous {
     const double logeps;
     const double psqrlogesqr;
     const double kconst;
+    const vector<PQForceEvent> &pq;
 };
 
-#endif // SHORT_RANGE_FORCES
+class PQCollisionForce {
+
+};
+
+#endif

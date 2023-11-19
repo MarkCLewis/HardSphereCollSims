@@ -909,12 +909,18 @@ class GravCollTree {
 			if(pool[n].mass<=0.0) return;
 			int num=pool[n].numParts;
 			if(num>0) {
+				CartCoords cc;
 				for(int j=0; j<num; ++j) {
 					ParticleIndex oi=pool[n].parts[j];
 					if(oi!=pi && oi>=0) {
-						double dx=pop.getx(oi)+offsetX-pop.getx(pi);
-						double dy=pop.gety(oi)+offsetY-pop.gety(pi);
-						double dz=pop.getz(oi)-pop.getz(pi);
+						bounds.offset(pop, oi, offsetX, offsetY, cc);
+						double dx=cc.x-pop.getx(pi);
+						double dy=cc.y+offsetY-pop.gety(pi);
+						double dz=cc.z-pop.getz(pi);
+
+						// double dx=pop.getx(oi)+offsetX-pop.getx(pi);
+						// double dy=pop.gety(oi)+offsetY-pop.gety(pi);
+						// double dz=pop.getz(oi)-pop.getz(pi);
 						double dist=sqrt(dx*dx+dy*dy+dz*dz);
 #ifdef GRAV_STATS
 						IterCounter::recordSqr();
